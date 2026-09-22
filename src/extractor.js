@@ -15,6 +15,8 @@ const units = {
   uL: String.raw`U\s*\/?\s*[lL]\b`,
   pgMl: String.raw`pg\s*\/?\s*m[lL]\b`,
   ugDl: String.raw`(?:u|µ|μ)g\s*\/?\s*d[lL]\b`,
+  pmolL: String.raw`pmol\s*\/?\s*[lL]\b`,
+  nmolL: String.raw`nmol\s*\/?\s*[lL]\b`,
   count3Ul: String.raw`(?:10\^?3|10e3|x10\^?3)\s*\/?\s*(?:u|µ|μ)[lL]\b`,
   enzyme: String.raw`(?:U|UI|IU)\s*\/?\s*[lL]\b`,
   percent: String.raw`%`,
@@ -100,7 +102,32 @@ const definitions = [
 
   // Endocrino
   { id: 'tsh', label: 'TSH', group: 'Endocrino', format: 'raw', patterns: [rx(String.raw`(?:\bHORMONA\s+TIROESTIMULANTE\s*\(TSH\)|\bTSH\b\)?)`, units.uiMl)] },
-  { id: 'freeT4', label: 'T4L', group: 'Endocrino', format: 'raw', patterns: [rx(String.raw`(?:(?:TIROXINA|TETRAIODOTIRONINA|TETRAIDOTIRONINA)\s+LIBRE\s*\(T4L\)|\bT4L\b\)?)`, units.ngDl)] },
+  {
+    id: 'totalT3', label: 'T3', group: 'Endocrino', format: 'raw', patterns: [
+      rx(String.raw`\b(?:TRIYODOTIRONINA|TRIIODOTIRONINA)\s+TOTAL(?:\s*\(T3\))?`, String.raw`(?:${units.ngMl}|${units.ngDl}|${units.nmolL})`),
+      rx(String.raw`\bT3\s+TOTAL\b`, String.raw`(?:${units.ngMl}|${units.ngDl}|${units.nmolL})`),
+      rx(String.raw`\bT3\b(?!\s*(?:LIBRE|L\b))`, String.raw`(?:${units.ngMl}|${units.ngDl}|${units.nmolL})`),
+    ],
+  },
+  {
+    id: 'freeT3', label: 'T3L', group: 'Endocrino', format: 'raw', patterns: [
+      rx(String.raw`\b(?:TRIYODOTIRONINA|TRIIODOTIRONINA)\s+LIBRE(?:\s*\((?:T3L|FT3)\))?`, String.raw`(?:${units.pgMl}|pg\s*\/?\s*d[lL]\b|${units.pmolL})`),
+      rx(String.raw`\b(?:T3\s+LIBRE|T3L|FT3)\b`, String.raw`(?:${units.pgMl}|pg\s*\/?\s*d[lL]\b|${units.pmolL})`),
+    ],
+  },
+  {
+    id: 'freeT4', label: 'T4L', group: 'Endocrino', format: 'raw', patterns: [
+      rx(String.raw`\b(?:TIROXINA|TETRAIODOTIRONINA|TETRAIDOTIRONINA)\s+LIBRE(?:\s*\((?:T4L|FT4)\))?`, String.raw`(?:${units.ngDl}|${units.pmolL})`),
+      rx(String.raw`\b(?:T4\s+LIBRE|T4L|FT4)\b`, String.raw`(?:${units.ngDl}|${units.pmolL})`),
+    ],
+  },
+  {
+    id: 'totalT4', label: 'T4T', group: 'Endocrino', format: 'raw', patterns: [
+      rx(String.raw`\b(?:TIROXINA|TETRAIODOTIRONINA|TETRAIDOTIRONINA)\s+TOTAL(?:\s*\(T4\))?`, String.raw`(?:${units.ugDl}|${units.nmolL})`),
+      rx(String.raw`\bT4\s+TOTAL\b`, String.raw`(?:${units.ugDl}|${units.nmolL})`),
+      rx(String.raw`\bT4\b(?!\s*(?:LIBRE|L\b))`, String.raw`(?:${units.ugDl}|${units.nmolL})`),
+    ],
+  },
   { id: 'bhcg', label: 'BHCG', group: 'Endocrino', format: 'raw', patterns: [rx(String.raw`(?:\bBETA\s+GONADOTROFINA\s+CORI[ÓO]NICA\s*\(BHCG\)(?:\s+HUMANA)?|\bBETA[-\s]?HCG\b|\bBHCG\b)`, units.mUiMl)] },
   { id: 'testosterone', label: 'Testo', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bTESTOSTERONA(?:\s+TOTAL)?\b`, units.ngMl)] },
   { id: 'lh', label: 'LH', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`(?:\bHORMONA\s+LUTEINIZANTE\s*\(LH\)|\bLH\b\)?)`, units.mUiMl)] },
