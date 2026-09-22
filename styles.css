@@ -250,6 +250,11 @@ select {
   color: #829ab1;
 }
 
+.empty-state[hidden],
+pre[hidden] {
+  display: none;
+}
+
 .empty-state span {
   color: #38b2ac;
   font-size: 3rem;
