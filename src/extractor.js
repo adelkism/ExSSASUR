@@ -16,6 +16,7 @@ const units = {
   pgMl: String.raw`pg\s*\/?\s*m[lL]\b`,
   ugDl: String.raw`(?:u|µ|μ)g\s*\/?\s*d[lL]\b`,
   count3Ul: String.raw`(?:10\^?3|10e3|x10\^?3)\s*\/?\s*(?:u|µ|μ)[lL]\b`,
+  enzyme: String.raw`(?:U|UI|IU)\s*\/?\s*[lL]\b`,
   percent: String.raw`%`,
 };
 
@@ -61,8 +62,18 @@ const definitions = [
   // Hepático
   { id: 'bilirubinTotal', label: 'BiliT', group: 'Hepático', format: 'trim2', patterns: [rx(String.raw`\bBILIRRUBINA\s+TOTAL\b`, units.mgDl)] },
   { id: 'bilirubinDirect', label: 'BiliD', group: 'Hepático', format: 'trim2', patterns: [rx(String.raw`\bBILIRRUBINA\s+DIRECTA\b`, units.mgDl)] },
-  { id: 'got', label: 'GOT', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\b(?:TRANSAMINASA\s+)?(?:GOT\s*\/\s*(?:ASAT|AST)|ASAT\s*\/\s*GOT|GOT|ASAT|AST)\b`, String.raw`(?:U|UI)\s*\/?\s*[lL]\b`)] },
-  { id: 'gpt', label: 'GPT', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\b(?:TRANSAMINASA\s+)?(?:GPT\s*\/\s*(?:ALAT|ALT)|ALAT\s*\/\s*GPT|GPT|ALAT|ALT)\b`, String.raw`(?:U|UI)\s*\/?\s*[lL]\b`)] },
+  {
+    id: 'got', label: 'GOT', group: 'Hepático', format: 'integer', patterns: [
+      rx(String.raw`\b(?:TRANSAMINASA\s+)?(?:GOT|TGO|ASAT|AST|SGOT)\b(?:\s*(?:\/|-)\s*(?:GOT|TGO|ASAT|AST|SGOT)\b|\s*\((?:GOT|TGO|ASAT|AST|SGOT)\))?`, units.enzyme),
+      rx(String.raw`\bTRANSAMINASA\s+(?:GLUT[ÁA]MICO[\s-]+OXALAC[ÉE]TICA|OXALAC[ÉE]TICA)(?:\s*\((?:GOT|TGO|ASAT|AST|SGOT)\))?`, units.enzyme),
+    ],
+  },
+  {
+    id: 'gpt', label: 'GPT', group: 'Hepático', format: 'integer', patterns: [
+      rx(String.raw`\b(?:TRANSAMINASA\s+)?(?:GPT|TGP|ALAT|ALT|SGPT)\b(?:\s*(?:\/|-)\s*(?:GPT|TGP|ALAT|ALT|SGPT)\b|\s*\((?:GPT|TGP|ALAT|ALT|SGPT)\))?`, units.enzyme),
+      rx(String.raw`\bTRANSAMINASA\s+(?:GLUT[ÁA]MICO[\s-]+PIR[ÚU]VICA|PIR[ÚU]VICA)(?:\s*\((?:GPT|TGP|ALAT|ALT|SGPT)\))?`, units.enzyme),
+    ],
+  },
   { id: 'alkalinePhosphatase', label: 'FA', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\bFOSFATASA(?:S)?\s+ALCALINA(?:S)?\b`, units.uL)] },
   { id: 'ggt', label: 'GGT', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\b(?:GAMMA\s+GLUTAMIL(?:TRANSPEPTIDASA|\s+TRANSFERASA)?|GGT)\b`, units.uL)] },
   { id: 'albumin', label: 'Alb', group: 'Hepático', format: 'fixed1', patterns: [rx(String.raw`\bALB[ÚU]MINA(?:\s+SANGRE)?\b`, units.gDl)] },

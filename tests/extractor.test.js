@@ -91,6 +91,24 @@ test('clasifica albúmina como hepática y permite omitir encabezados de grupos'
   assert.equal(ungrouped, 'BiliT: 0.8, Alb: 4.2, ColT: 180');
 });
 
+test('reconoce transaminasas con nomenclaturas y unidades habituales', () => {
+  const cases = [
+    [
+      'Transaminasa Oxalacética (GOT) 34 U/L Transaminasa Pirúvica (GPT) 41 U/L',
+      { got: '34', gpt: '41' },
+    ],
+    ['AST (GOT) 28 UI/L ALT (GPT) 35 IU/L', { got: '28', gpt: '35' }],
+    ['TGO 22 U/L TGP 25 U/L', { got: '22', gpt: '25' }],
+  ];
+
+  for (const [text, expected] of cases) {
+    assert.deepEqual(asObject(text), expected);
+  }
+
+  const { summary } = extractAndFormat(cases[0][0], 'grouped');
+  assert.equal(summary, 'Hepático: GOT: 34, GPT: 41');
+});
+
 test('reconoce perfil de hierro y no captura rangos de referencia', () => {
   const text = `Ferremia 69.1 ug/dL [ 33.0 - 193.0 ] Ferrosina
     TIBC 269.1 ug/dL [ 228.0 - 428.0 ] Calculado
