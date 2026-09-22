@@ -16,7 +16,8 @@ La inclusión en este extractor no implica que una prestación se procese actual
 
 ## Renal y urinario
 
-- Relación albúmina/creatinina urinaria (RAC/ACR), incluyendo mg/g, mg/mmol y µg/mg.
+- Relación albúmina/creatinina urinaria (RAC/ACR), incluyendo relación microalbuminuria/creatininuria y unidades mg/g, mg/mmol y µg/mg.
+- Microalbúmina y creatinina en muestra aislada de orina.
 - Orina de 24 horas: calciuria, creatininuria y electrolitos urinarios (sodio, potasio y cloro).
 - Orina completa: color, aspecto, densidad, pH, proteínas, glucosa, cetonas, bilirrubina, urobilinógeno, sangre, nitritos y esterasa leucocitaria.
 - Sedimento urinario: leucocitos, eritrocitos/hematíes, bacterias, cilindros y cristales.

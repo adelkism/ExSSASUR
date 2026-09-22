@@ -164,6 +164,18 @@ test('extrae RAC con denominaciones y unidades habituales', () => {
   );
 });
 
+test('extrae RAC y sus componentes con la nomenclatura de microalbuminuria del HIS', () => {
+  const text = `Relacion Microalbuminuria / Creatinuria 3.56 Relación mg/g 0.00 - 30.00 Calculado
+    Microalbúmina orina - análisis 7.48 mg/l 0.00 - 20.00 Inmunoturbidimetría
+    Creatinina orina - análisis 210.00 mg/dl 28.00 - 217.00 Jaffé cinético`;
+
+  assert.deepEqual(asObject(text), {
+    urineAcr: '3.56',
+    urineMicroalbumin: '7.48',
+    urineCreatinine: '210',
+  });
+});
+
 test('extrae calciuria, creatininuria y electrolitos urinarios de 24 horas', () => {
   const text = `Calcio en orina de 24 horas 245 mg/24 h
     Creatininuria 24 horas 1.62 g/día
