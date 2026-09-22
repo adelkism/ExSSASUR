@@ -16,6 +16,33 @@ test('conserva comparador y precisión en TSH, y reconoce T4L con denominación 
   });
 });
 
+test('extrae T3 y T4 libres y totales sin confundir sus denominaciones', () => {
+  const conventional = `TSH 1.25 uUI/mL T3 1.21 ng/mL
+    Triyodotironina libre (T3L) 3.4 pg/mL
+    T4 libre 1.18 ng/dL T4 total 7.8 ug/dL`;
+
+  assert.deepEqual(asObject(conventional), {
+    tsh: '1.25',
+    totalT3: '1.21',
+    freeT3: '3.4',
+    freeT4: '1.18',
+    totalT4: '7.8',
+  });
+
+  const international = `FT3 5.1 pmol/L FT4 15.2 pmol/L
+    Triiodotironina total 1.8 nmol/L Tiroxina total 104 nmol/L`;
+
+  assert.deepEqual(asObject(international), {
+    totalT3: '1.8',
+    freeT3: '5.1',
+    freeT4: '15.2',
+    totalT4: '104',
+  });
+
+  const { summary } = extractAndFormat(conventional, 'grouped');
+  assert.equal(summary, 'Endocrino: TSH: 1.25, T3: 1.21, T3L: 3.4, T4L: 1.18, T4T: 7.8');
+});
+
 test('extrae panel corrido, deduplica testosterona y selecciona el valor actual de 17OHP', () => {
   const text = `Glucosa 95.2 mg/dl 70.0 - 100.0 Hexoquinasa
     Creatinina 1.0 mg/dl 0.7 - 1.2 Jaffé cinético
