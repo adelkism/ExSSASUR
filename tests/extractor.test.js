@@ -77,3 +77,27 @@ test('genera resumen clínico compacto con Crea/VFG y ELP agrupados', () => {
   const { summary } = extractAndFormat(text, 'compact');
   assert.equal(summary, 'Crea: 1.0 (VFG: 84), ELP: 140/5.0/99');
 });
+
+test('reconoce perfil de hierro y no captura rangos de referencia', () => {
+  const text = `Ferremia 69.1 ug/dL [ 33.0 - 193.0 ] Ferrosina
+    TIBC 269.1 ug/dL [ 228.0 - 428.0 ] Calculado
+    UIBC 200.0 ug/dL [ 135.0 - 392.0 ] Ferrosina
+    Ferritina 144.7 ng/mL
+    Saturación transferrina 21.72 % [ 16.00 - 45.00 ] Calculado
+    Transferrina 226.0 mg/dL [ 130.0 - 360.0 ] Inmunoturbidimétrico`;
+
+  assert.deepEqual(asObject(text), {
+    serumIron: '69.1',
+    tibc: '269.1',
+    uibc: '200.0',
+    ferritin: '144.7',
+    transferrinSaturation: '21.72%',
+    transferrin: '226.0',
+  });
+
+  const { summary } = extractAndFormat(text, 'grouped');
+  assert.equal(
+    summary,
+    'Perfil de hierro: Ferremia: 69.1, TIBC: 269.1, UIBC: 200.0, Ferritina: 144.7, Sat. transf.: 21.72%, Transferrina: 226.0',
+  );
+});
