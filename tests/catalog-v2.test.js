@@ -115,6 +115,43 @@ test('extrae hormonas metabólicas y gonadales adicionales', () => {
   });
 });
 
+test('reconoce IGF-1 y ACTH con los nombres completos del laboratorio', () => {
+  const text = `Factor crecimiento insulínico tipo 1 (IGF-1) 645.00 ng/ml
+    Adenocorticotrofina (ACTH) 22.20 pg/ml 7.20 - 63.60 ECLIA
+    Cortisol 4.83 ug/dL`;
+
+  assert.deepEqual(asObject(text), {
+    cortisol: '4.83',
+    acth: '22.2',
+    igf1: '645',
+  });
+
+  assert.deepEqual(
+    asObject('Factor de crecimiento similar a la insulina tipo I 210 ng/mL Adrenocorticotrópica 18 pg/mL'),
+    { acth: '18', igf1: '210' },
+  );
+});
+
+test('extrae perfil fosfocálcico cuando el calcio no trae unidad y VitD invierte el nombre', () => {
+  const text = `Albúmina sangre 4.22 g/dl 3.40 - 4.80 4.37 Verde de bromocresol
+    Fósforo * 2.2 mg/dl 2.5 - 4.5 2.2 Fosfomolibdato - UV
+    Calcio * 11.0 Vitamina D 25-OH * 15.60 ng/ml >30.00 15.90 ECLIA
+    Paratohormona * 88.60 pg/ml`;
+
+  assert.deepEqual(asObject(text), {
+    calcium: '11.0',
+    phosphorus: '2.2',
+    albumin: '4.2',
+    pth: '88.6',
+    vitaminD: '15.6',
+  });
+
+  assert.deepEqual(
+    asObject('Calcio iónico 1.18 mmol/L Calcio en orina de 24 horas 245 mg/24 h'),
+    { ionizedCalcium: '1.18', urineCalcium24h: '245' },
+  );
+});
+
 test('extrae RAC con denominaciones y unidades habituales', () => {
   assert.deepEqual(asObject('RAC 28.4 mg/g'), { urineAcr: '28.4' });
   assert.deepEqual(
