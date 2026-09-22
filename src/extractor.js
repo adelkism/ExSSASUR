@@ -15,6 +15,7 @@ const units = {
   uL: String.raw`U\s*\/?\s*[lL]\b`,
   pgMl: String.raw`pg\s*\/?\s*m[lL]\b`,
   ugDl: String.raw`(?:u|µ|μ)g\s*\/?\s*d[lL]\b`,
+  count3Ul: String.raw`(?:10\^?3|10e3|x10\^?3)\s*\/?\s*(?:u|µ|μ)[lL]\b`,
   percent: String.raw`%`,
 };
 
@@ -22,10 +23,13 @@ const definitions = [
   // Hemograma
   { id: 'hb', label: 'Hb', group: 'Hemograma', format: 'fixed1', patterns: [rx(String.raw`\bHEMOGLOBINA\b`, units.gDl)] },
   { id: 'hcto', label: 'Hcto', group: 'Hemograma', format: 'integer', patterns: [rx(String.raw`\bHEMATOCRITO\b`, units.percent)] },
-  { id: 'wbc', label: 'GB', group: 'Hemograma', format: 'raw', patterns: [rx(String.raw`\b(?:RECUENTO\s+(?:DE\s+)?LEUCOCITOS|LEUCOCITOS)\b`, String.raw`(?:10\^?3|x10\^?3)\s*\/?\s*(?:u|µ|μ)[lL]`)] },
-  { id: 'neutrophils', label: 'N', group: 'Hemograma', format: 'integer', suffix: '%', patterns: [rx(String.raw`\bNEUTR[ÓO]FILOS\s*%?\b`, units.percent)] },
-  { id: 'lymphocytes', label: 'L', group: 'Hemograma', format: 'integer', suffix: '%', patterns: [rx(String.raw`\bLINFOCITOS\s*%?\b`, units.percent)] },
-  { id: 'platelets', label: 'Plaq', group: 'Hemograma', format: 'integer', patterns: [rx(String.raw`\b(?:RECUENTO\s+(?:DE\s+)?PLAQUETAS|PLAQUETAS)\b`, String.raw`(?:10\^?3|x10\^?3)\s*\/?\s*(?:u|µ|μ)[lL]`)] },
+  { id: 'vcm', label: 'VCM', group: 'Hemograma', format: 'trim1', patterns: [rx(String.raw`\b(?:VCM(?:\s*-\s*VOLUMEN\s+CORPUSCULAR\s+MEDIO)?|VOLUMEN\s+CORPUSCULAR\s+MEDIO)\b`, String.raw`f[lL]\b`)] },
+  { id: 'chcm', label: 'CHCM', group: 'Hemograma', format: 'trim1', patterns: [rx(String.raw`\b(?:CHCM(?:\s*-\s*(?:CONC\.?\s*)?(?:HB\s+)?CORPUSCULAR\s+MEDIA)?|CONCENTRACI[ÓO]N\s+DE\s+HEMOGLOBINA\s+CORPUSCULAR\s+MEDIA)\b`, units.gDl)] },
+  { id: 'wbc', label: 'GB', group: 'Hemograma', format: 'raw', patterns: [rx(String.raw`\b(?:RECUENTO\s+(?:DE\s+)?LEUCOCITOS|LEUCOCITOS)\b`, units.count3Ul)] },
+  { id: 'anc', label: 'RAN', group: 'Hemograma', format: 'raw', patterns: [rx(String.raw`\b(?:RECUENTO\s+ABSOLUTO\s+DE\s+NEUTR[ÓO]FILOS|NEUTR[ÓO]FILOS\s+ABSOLUTOS?|RAN)\b`, units.count3Ul)] },
+  { id: 'neutrophils', label: 'N', group: 'Hemograma', format: 'integer', suffix: '%', patterns: [rx(String.raw`\bNEUTR[ÓO]FILOS(?:\s+SEGMENTADOS)?\b\s*%?`, units.percent)] },
+  { id: 'lymphocytes', label: 'L', group: 'Hemograma', format: 'integer', suffix: '%', patterns: [rx(String.raw`\bLINFOCITOS\b\s*%?`, units.percent)] },
+  { id: 'platelets', label: 'Plaq', group: 'Hemograma', format: 'integer', patterns: [rx(String.raw`\b(?:RECUENTO\s+(?:DE\s+)?PLAQUETAS|PLAQUETAS)\b`, units.count3Ul)] },
 
   // Perfil de hierro
   { id: 'serumIron', label: 'Ferremia', group: 'Perfil de hierro', format: 'raw', patterns: [rx(String.raw`\bFERREMIA\b`, units.ugDl)] },
@@ -143,7 +147,21 @@ function formatValue(token, format) {
   if (format === 'fixed2') return number.toFixed(2);
   if (format === 'trim1') return String(Number(number.toFixed(1)));
   if (format === 'trim2') return String(Number(number.toFixed(2)));
+  if (format === 'trim3') return String(Number(number.toFixed(3)));
   return lexicalNumber;
+}
+
+function numericPart(value) {
+  const match = String(value ?? '').replace(/\s+/g, '').replace(',', '.').match(/^([<>≤≥]?)(-?\d+(?:\.\d+)?)/);
+  return match ? { comparator: match[1], number: Number(match[2]) } : null;
+}
+
+function hemoglobinIsBelow12(rawValue) {
+  const parsed = numericPart(rawValue);
+  if (!parsed || !Number.isFinite(parsed.number)) return false;
+  if (parsed.comparator === '>' || parsed.comparator === '≥') return false;
+  if (parsed.comparator === '<' || parsed.comparator === '≤') return parsed.number <= 12;
+  return parsed.number < 12;
 }
 
 function findValue(text, patterns) {
@@ -176,7 +194,37 @@ export function extractLabs(sourceText) {
       label: definition.label,
       group: definition.group,
       value,
+      rawValue: token,
     });
+  }
+
+  const hb = results.find((result) => result.id === 'hb');
+  if (!hemoglobinIsBelow12(hb?.rawValue)) {
+    for (const id of ['vcm', 'chcm']) {
+      const index = results.findIndex((result) => result.id === id);
+      if (index !== -1) results.splice(index, 1);
+    }
+  }
+
+  const directAnc = results.find((result) => result.id === 'anc');
+  if (!directAnc) {
+    const wbc = results.find((result) => result.id === 'wbc');
+    const neutrophils = results.find((result) => result.id === 'neutrophils');
+    const wbcNumber = numericPart(wbc?.rawValue)?.number;
+    const neutrophilPercent = numericPart(neutrophils?.rawValue)?.number;
+
+    if (Number.isFinite(wbcNumber) && Number.isFinite(neutrophilPercent)) {
+      const ancValue = formatValue(String((wbcNumber * neutrophilPercent) / 100), 'trim3');
+      const wbcIndex = results.findIndex((result) => result.id === 'wbc');
+      results.splice(wbcIndex + 1, 0, {
+        id: 'anc',
+        label: 'RAN',
+        group: 'Hemograma',
+        value: ancValue,
+        rawValue: ancValue,
+        calculated: true,
+      });
+    }
   }
 
   return results;
@@ -211,6 +259,16 @@ function compactItems(results) {
 
   for (const result of results) {
     if (consumed.has(result.id)) continue;
+
+    if (result.id === 'wbc' && byId.has('anc')) {
+      items.push({
+        group: result.group,
+        text: `GB: ${result.value} (RAN: ${byId.get('anc').value})`,
+      });
+      consumed.add('anc');
+      continue;
+    }
+
     items.push({ group: result.group, text: `${result.label}: ${result.value}` });
   }
 
