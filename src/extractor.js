@@ -85,7 +85,12 @@ const definitions = [
   { id: 'sodium', label: 'Na', group: 'Renal y metabólico', format: 'integer', patterns: [rx(String.raw`\b(?:ELECTROLITO\s+)?SODIO\b`, units.meqL)] },
   { id: 'potassium', label: 'K', group: 'Renal y metabólico', format: 'fixed1', patterns: [rx(String.raw`\b(?:ELECTROLITO\s+)?POTASIO\b`, units.meqL)] },
   { id: 'chloride', label: 'Cl', group: 'Renal y metabólico', format: 'integer', patterns: [rx(String.raw`\b(?:ELECTROLITO\s+)?CLORO\b`, units.meqL)] },
-  { id: 'calcium', label: 'Ca', group: 'Renal y metabólico', format: 'fixed1', patterns: [rx(String.raw`\bCALCIO(?:\s+S[ÉE]RICO)?\b`, units.mgDl)] },
+  {
+    id: 'calcium', label: 'Ca', group: 'Renal y metabólico', format: 'fixed1', patterns: [
+      rx(String.raw`\bCALCIO(?:\s+S[ÉE]RICO)?\b`, units.mgDl),
+      rx(String.raw`\bCALCIO(?:\s+S[ÉE]RICO)?\b(?!\s+(?:EN\s+ORINA|URINARIO|I[ÓO]NICO|24\s*H))`),
+    ],
+  },
   { id: 'ionizedCalcium', label: 'Ca iónico', group: 'Renal y metabólico', format: 'trim2', patterns: [rx(String.raw`\bCALCIO\s+I[ÓO]NICO\b`, String.raw`(?:${units.mmolL}|${units.mgDl})`)] },
   { id: 'phosphorus', label: 'P', group: 'Renal y metabólico', format: 'trim2', patterns: [rx(String.raw`\bF[ÓO]SFORO(?:\s+S[ÉE]RICO)?\b`, units.mgDl)] },
   { id: 'magnesium', label: 'Mg', group: 'Renal y metabólico', format: 'trim2', patterns: [rx(String.raw`\bMAGNESIO(?:\s+S[ÉE]RICO)?\b`, units.mgDl)] },
@@ -238,8 +243,18 @@ const definitions = [
   { id: 'postDexamethasoneCortisol', label: 'Cort post-Dexa', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCORTISOL\s+(?:POST|TRAS)\s+(?:DEXA(?:METASONA)?|SUPRESI[ÓO]N\s+CON\s+DEXAMETASONA)\b`, cortisolUnits)] },
   { id: 'lateNightSalivaryCortisol', label: 'CSN', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCORTISOL\s+SALIVAL(?:\s+(?:NOCTURNO|DE\s+MEDIANOCHE|23\s*H))?\b`, String.raw`(?:${cortisolUnits}|${units.ngMl}|${units.ugL})`)] },
   { id: 'cortisol', label: 'Cortisol', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCORTISOL\b(?!\s+(?:(?:LIBRE\s+)?(?:URINARIO|EN\s+ORINA)|SALIVAL|POST|TRAS|\d+\s*MIN))`, cortisolUnits)] },
-  { id: 'acth', label: 'ACTH', group: 'Endocrino', format: 'trim1', patterns: [rx(String.raw`\bACTH\b`, units.pgMl)] },
-  { id: 'igf1', label: 'IGF-1', group: 'Endocrino', format: 'integer', patterns: [rx(String.raw`\b(?:IGF\s*-?\s*1|SOMATOMEDINA\s+C)\b`, units.ngMl)] },
+  {
+    id: 'acth', label: 'ACTH', group: 'Endocrino', format: 'trim1', patterns: [
+      rx(String.raw`\bACTH\b`, units.pgMl),
+      rx(String.raw`\b(?:(?:HORMONA\s+)?(?:ADRENO|ADENO)CORTICOTROFINA|(?:HORMONA\s+)?ADRENOCORTICOTR[ÓO]PICA|CORTICOTROPINA)(?:\s*\(ACTH\))?`, units.pgMl),
+    ],
+  },
+  {
+    id: 'igf1', label: 'IGF-1', group: 'Endocrino', format: 'integer', patterns: [
+      rx(String.raw`\b(?:IGF\s*-?\s*(?:1|I)|SOMATOMEDINA\s+C)\b`, units.ngMl),
+      rx(String.raw`\bFACTOR\s+(?:DE\s+)?CRECIMIENTO\s+(?:INSUL[IÍ]NICO|INSULINO\s*-?\s*S[IÍ]MIL|SIMILAR\s+A\s+LA\s+INSULINA)(?:\s+TIPO)?\s+(?:1|I)(?:\s*\(IGF\s*-?\s*(?:1|I)\))?`, units.ngMl),
+    ],
+  },
   { id: 'growthHormone', label: 'GH', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`(?:\bHORMONA\s+DE\s+CRECIMIENTO\b(?:\s*\(GH\))?|\bGH\b)`, units.ngMl)] },
   { id: 'calcitonin', label: 'Calcitonina', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCALCITONINA\b`, String.raw`(?:${units.pgMl}|${units.ngL})`)] },
   {
@@ -254,7 +269,11 @@ const definitions = [
   { id: 'renin', label: 'Renina', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bRENINA(?:\s+DIRECTA)?\b`, units.uiMl)] },
   { id: 'aldosterone', label: 'Aldo', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bALDOSTERONA\b`, String.raw`(?:pg\s*\/?\s*m[lL]|ng\s*\/?\s*d[lL])\b`)] },
   { id: 'pth', label: 'PTH', group: 'Endocrino', format: 'trim1', patterns: [rx(String.raw`\b(?:PARATOHORMONA(?:\s+INTACTA)?(?:\s*\(PTH\))?|PTH)\b`, units.pgMl)] },
-  { id: 'vitaminD', label: 'VitD', group: 'Endocrino', format: 'trim1', patterns: [rx(String.raw`\b(?:25\s*-?\s*OH\s+VITAMINA\s+D|VITAMINA\s+D(?:\s+TOTAL)?)\b`, units.ngMl)] },
+  {
+    id: 'vitaminD', label: 'VitD', group: 'Endocrino', format: 'trim1', patterns: [
+      rx(String.raw`\b(?:25\s*-?\s*(?:OH|HIDROXI)\s*VITAMINA\s+D|VITAMINA\s+D(?:\s+TOTAL)?(?:\s*\(?\s*25\s*-?\s*(?:OH|HIDROXI)\s*\)?)?)\b`, String.raw`(?:${units.ngMl}|${units.nmolL})`),
+    ],
+  },
 ];
 
 const groupOrder = [
