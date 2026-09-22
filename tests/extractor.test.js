@@ -101,3 +101,43 @@ test('reconoce perfil de hierro y no captura rangos de referencia', () => {
     'Perfil de hierro: Ferremia: 69.1, TIBC: 269.1, UIBC: 200.0, Ferritina: 144.7, Sat. transf.: 21.72%, Transferrina: 226.0',
   );
 });
+
+test('incluye VCM y CHCM si Hb es menor de 12 y calcula RAN', () => {
+  const text = `Hemoglobina 11.4 g/dL Hematocrito 35.2 %
+    VCM 82.5 fL CHCM 31.8 g/dL
+    Recuento de leucocitos 6.40 10^3/uL Neutrófilos % 60.5 %
+    Recuento de plaquetas 230 10^3/uL VHS 20 mm/hr`;
+
+  assert.deepEqual(asObject(text), {
+    hb: '11.4',
+    hcto: '35',
+    vcm: '82.5',
+    chcm: '31.8',
+    wbc: '6.40',
+    anc: '3.872',
+    neutrophils: '61%',
+    platelets: '230',
+    esr: '20',
+  });
+
+  const { summary } = extractAndFormat(text, 'grouped');
+  assert.equal(
+    summary,
+    'Hemograma: Hb: 11.4, Hcto: 35, VCM: 82.5, CHCM: 31.8, GB: 6.40 (RAN: 3.872), N: 61%, Plaq: 230\nInflamación: VHS: 20',
+  );
+});
+
+test('omite VCM y CHCM cuando Hb es 12 o mayor y prioriza RAN directo', () => {
+  const text = `Hemoglobina 13.2 g/dL Hematocrito 40 % VCM 90 fL CHCM 33 g/dL
+    Leucocitos 5.20 10^3/uL Neutrófilos % 50 %
+    Recuento absoluto de neutrófilos 2.75 10^3/uL Plaquetas 250 10^3/uL`;
+
+  assert.deepEqual(asObject(text), {
+    hb: '13.2',
+    hcto: '40',
+    wbc: '5.20',
+    anc: '2.75',
+    neutrophils: '50%',
+    platelets: '250',
+  });
+});
