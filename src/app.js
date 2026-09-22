@@ -1,11 +1,11 @@
-import { extractAndFormat } from './extractor.js?v=1.2.0';
+import { extractAndFormat } from './extractor.js?v=1.3.0';
 
 const sourceText = document.querySelector('#sourceText');
 const resultText = document.querySelector('#resultText');
 const emptyState = document.querySelector('#emptyState');
 const characterCount = document.querySelector('#characterCount');
 const resultCount = document.querySelector('#resultCount');
-const outputFormat = document.querySelector('#outputFormat');
+const groupResults = document.querySelector('#groupResults');
 const copyButton = document.querySelector('#copyButton');
 const clearButton = document.querySelector('#clearButton');
 const sampleButton = document.querySelector('#sampleButton');
@@ -25,7 +25,8 @@ function render() {
   const text = sourceText.value;
   characterCount.textContent = `${text.length.toLocaleString('es-CL')} caracteres`;
 
-  const { results, summary } = extractAndFormat(text, outputFormat.value);
+  const mode = groupResults.checked ? 'grouped' : 'compact';
+  const { results, summary } = extractAndFormat(text, mode);
   currentSummary = summary;
 
   const hasResults = Boolean(summary);
@@ -57,7 +58,7 @@ async function copySummary() {
 }
 
 sourceText.addEventListener('input', render);
-outputFormat.addEventListener('change', render);
+groupResults.addEventListener('change', render);
 copyButton.addEventListener('click', copySummary);
 
 clearButton.addEventListener('click', () => {
