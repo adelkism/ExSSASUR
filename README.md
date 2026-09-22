@@ -8,6 +8,7 @@ Extractor clínico independiente de resultados de laboratorio, diseñado para co
 - Conserva comparadores como `<`, `>`, `≤` y `≥`.
 - Acepta coma o punto decimal y variaciones habituales de unidades.
 - Agrupa creatinina/VFG y electrolitos en un formato clínico compacto.
+- Permite activar o desactivar los encabezados por categorías.
 - Deduplica exámenes repetidos.
 - Procesa todo localmente en el navegador: no almacena ni transmite el texto pegado.
 
