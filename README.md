@@ -12,6 +12,8 @@ Extractor clínico independiente de resultados de laboratorio, diseñado para co
 - Deduplica exámenes repetidos.
 - Procesa todo localmente en el navegador: no almacena ni transmite el texto pegado.
 
+La lista detallada de prestaciones reconocidas está en [CATALOGO.md](CATALOGO.md).
+
 ## Uso local
 
 Abre `index.html` en un servidor web local o utiliza GitHub Pages.
