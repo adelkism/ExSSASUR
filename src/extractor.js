@@ -14,6 +14,7 @@ const units = {
   meqL: String.raw`mEq\s*\/?\s*[lL]\b`,
   uL: String.raw`U\s*\/?\s*[lL]\b`,
   pgMl: String.raw`pg\s*\/?\s*m[lL]\b`,
+  ugDl: String.raw`(?:u|µ|μ)g\s*\/?\s*d[lL]\b`,
   percent: String.raw`%`,
 };
 
@@ -25,6 +26,14 @@ const definitions = [
   { id: 'neutrophils', label: 'N', group: 'Hemograma', format: 'integer', suffix: '%', patterns: [rx(String.raw`\bNEUTR[ÓO]FILOS\s*%?\b`, units.percent)] },
   { id: 'lymphocytes', label: 'L', group: 'Hemograma', format: 'integer', suffix: '%', patterns: [rx(String.raw`\bLINFOCITOS\s*%?\b`, units.percent)] },
   { id: 'platelets', label: 'Plaq', group: 'Hemograma', format: 'integer', patterns: [rx(String.raw`\b(?:RECUENTO\s+(?:DE\s+)?PLAQUETAS|PLAQUETAS)\b`, String.raw`(?:10\^?3|x10\^?3)\s*\/?\s*(?:u|µ|μ)[lL]`)] },
+
+  // Perfil de hierro
+  { id: 'serumIron', label: 'Ferremia', group: 'Perfil de hierro', format: 'raw', patterns: [rx(String.raw`\bFERREMIA\b`, units.ugDl)] },
+  { id: 'tibc', label: 'TIBC', group: 'Perfil de hierro', format: 'raw', patterns: [rx(String.raw`\bTIBC\b`, units.ugDl)] },
+  { id: 'uibc', label: 'UIBC', group: 'Perfil de hierro', format: 'raw', patterns: [rx(String.raw`\bUIBC\b`, units.ugDl)] },
+  { id: 'ferritin', label: 'Ferritina', group: 'Perfil de hierro', format: 'raw', patterns: [rx(String.raw`\bFERRITINA\b`, units.ngMl)] },
+  { id: 'transferrinSaturation', label: 'Sat. transf.', group: 'Perfil de hierro', format: 'raw', suffix: '%', patterns: [rx(String.raw`\bSATURACI[ÓO]N\s+(?:DE\s+)?TRANSFERRINA\b`, units.percent)] },
+  { id: 'transferrin', label: 'Transferrina', group: 'Perfil de hierro', format: 'raw', patterns: [rx(String.raw`\bTRANSFERRINA\b`, units.mgDl)] },
 
   // Renal y metabólico
   { id: 'glucose', label: 'Glic', group: 'Renal y metabólico', format: 'integer', patterns: [rx(String.raw`\b(?:GLUCOSA|GLICEMIA)(?:\s+BASAL)?\b`, units.mgDl)] },
@@ -100,6 +109,7 @@ const definitions = [
 
 const groupOrder = [
   'Hemograma',
+  'Perfil de hierro',
   'Renal y metabólico',
   'Hepático',
   'Lípidos y nutrición',
