@@ -106,7 +106,17 @@ const definitions = [
   // Renal y urinario
   {
     id: 'urineAcr', label: 'RAC', group: 'Renal y urinario', format: 'trim2', patterns: [
-      rx(String.raw`(?:^|\s)(?:RAC|ACR|RELACI[ÓO]N\s+(?:DE\s+)?(?:ALB[ÚU]MINA|ALBUMINURIA|MICROALBUMINURIA)\s*(?:\/|\s+CON\s+|\s*[-–]\s*|\s+)\s*CREATININA(?:\s+(?:EN\s+)?ORINA)?|[ÍI]NDICE\s+(?:DE\s+)?ALB[ÚU]MINA\s*(?:\/|\s*[-–]\s*)\s*CREATININA)\b`, String.raw`(?:mg\s*\/\s*g(?:\s+CREATININA)?|mg\s*\/\s*mmol|(?:u|µ|μ|mc)g\s*\/\s*mg)\b`),
+      new RegExp(String.raw`(?:^|\s)(?:RAC|ACR|RELACI[ÓO]N\s+(?:DE\s+)?(?:ALB[ÚU]MINA|ALBUMINURIA|MICROALBUMINURIA)\s*(?:\/|\s+CON\s+|\s*[-–]\s*|\s+)\s*CREATIN(?:INA|URIA)(?:\s+(?:EN\s+)?ORINA)?|[ÍI]NDICE\s+(?:DE\s+)?ALB[ÚU]MINA\s*(?:\/|\s*[-–]\s*)\s*CREATIN(?:INA|URIA))\b${FLAGS}${VALUE}\s*(?:RELACI[ÓO]N\s*)?(?:mg\s*\/\s*g(?:\s+CREATININA)?|mg\s*\/\s*mmol|(?:u|µ|μ|mc)g\s*\/\s*mg)\b`, 'i'),
+    ],
+  },
+  {
+    id: 'urineMicroalbumin', label: 'MicroalbU', group: 'Renal y urinario', format: 'trim2', patterns: [
+      rx(String.raw`\b(?:MICROALB[ÚU]MINA(?:\s+(?:EN\s+)?ORINA)?|MICROALBUMINURIA)(?:\s*-?\s*AN[ÁA]LISIS)?\b`, String.raw`(?:${units.mgL}|${units.mgDl}|${units.ugL})`),
+    ],
+  },
+  {
+    id: 'urineCreatinine', label: 'CreaU', group: 'Renal y urinario', format: 'trim2', patterns: [
+      rx(String.raw`\b(?:CREATININA\s+(?:EN\s+)?ORINA|CREATININURIA)(?:\s*-?\s*AN[ÁA]LISIS)?\b`, String.raw`(?:${units.mgDl}|${units.mmolL})`),
     ],
   },
   {
