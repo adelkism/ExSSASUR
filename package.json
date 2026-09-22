@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "test": "node --test"
   }
 }
