@@ -127,6 +127,27 @@ test('extrae RAC con denominaciones y unidades habituales', () => {
   );
 });
 
+test('extrae calciuria, creatininuria y electrolitos urinarios de 24 horas', () => {
+  const text = `Calcio en orina de 24 horas 245 mg/24 h
+    Creatininuria 24 horas 1.62 g/día
+    Sodio en orina 24 h 168 mmol/24 h
+    Potasio urinario de 24 horas 58 mEq/día
+    Cloruria 24 hrs 152 mmol/24 hrs`;
+
+  assert.deepEqual(asObject(text), {
+    urineCalcium24h: '245',
+    urineCreatinine24h: '1.62',
+    urineSodium24h: '168',
+    urinePotassium24h: '58',
+    urineChloride24h: '152',
+  });
+
+  assert.deepEqual(
+    asObject('Calcio 9.4 mg/dL Creatinina 1.0 mg/dL Sodio 140 mEq/L Potasio 4.2 mEq/L'),
+    { calcium: '9.4', creatinine: '1.0', sodium: '140', potassium: '4.2' },
+  );
+});
+
 test('extrae inmunoglobulinas cuantitativas y subclases de IgG', () => {
   const text = `Inmunoglobulina G 1240 mg/dL IgA 210 mg/dL IgM 96 mg/dL
     IgE total 72 UI/mL IgG1 650 mg/dL IgG2 310 mg/dL
