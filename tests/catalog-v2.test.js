@@ -115,6 +115,23 @@ test('extrae hormonas metabólicas y gonadales adicionales', () => {
   });
 });
 
+test('reconoce IGF-1 y ACTH con los nombres completos del laboratorio', () => {
+  const text = `Factor crecimiento insulínico tipo 1 (IGF-1) 645.00 ng/ml
+    Adenocorticotrofina (ACTH) 22.20 pg/ml 7.20 - 63.60 ECLIA
+    Cortisol 4.83 ug/dL`;
+
+  assert.deepEqual(asObject(text), {
+    cortisol: '4.83',
+    acth: '22.2',
+    igf1: '645',
+  });
+
+  assert.deepEqual(
+    asObject('Factor de crecimiento similar a la insulina tipo I 210 ng/mL Adrenocorticotrópica 18 pg/mL'),
+    { acth: '18', igf1: '210' },
+  );
+});
+
 test('extrae RAC con denominaciones y unidades habituales', () => {
   assert.deepEqual(asObject('RAC 28.4 mg/g'), { urineAcr: '28.4' });
   assert.deepEqual(
