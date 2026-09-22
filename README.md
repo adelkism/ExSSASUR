@@ -18,6 +18,17 @@ La lista detallada de prestaciones reconocidas está en [CATALOGO.md](CATALOGO.m
 
 Abre `index.html` en un servidor web local o utiliza GitHub Pages.
 
+## Publicación privada en Cloudflare
+
+La carpeta `cloudflare/` contiene un Worker que protege todos los archivos mediante un enlace secreto. El enlace se intercambia por una cookie `HttpOnly` y luego se elimina de la barra de direcciones. El secreto debe configurarse como `ACCESS_TOKEN` en Cloudflare y nunca guardarse en el repositorio.
+
+1. Ejecuta `npm run build:cloudflare`.
+2. Configura `ACCESS_TOKEN` como secreto del Worker.
+3. Despliega usando `wrangler.jsonc`.
+4. Ingresa inicialmente mediante `https://<worker>.workers.dev/?access=<token>`.
+
+Cambiar `ACCESS_TOKEN` invalida tanto el enlace anterior como las sesiones existentes.
+
 ## Pruebas
 
 Requiere Node.js 20 o superior:
