@@ -65,6 +65,7 @@ const definitions = [
   { id: 'gpt', label: 'GPT', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\b(?:TRANSAMINASA\s+)?(?:GPT\s*\/\s*(?:ALAT|ALT)|ALAT\s*\/\s*GPT|GPT|ALAT|ALT)\b`, String.raw`(?:U|UI)\s*\/?\s*[lL]\b`)] },
   { id: 'alkalinePhosphatase', label: 'FA', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\bFOSFATASA(?:S)?\s+ALCALINA(?:S)?\b`, units.uL)] },
   { id: 'ggt', label: 'GGT', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\b(?:GAMMA\s+GLUTAMIL(?:TRANSPEPTIDASA|\s+TRANSFERASA)?|GGT)\b`, units.uL)] },
+  { id: 'albumin', label: 'Alb', group: 'Hepático', format: 'fixed1', patterns: [rx(String.raw`\bALB[ÚU]MINA(?:\s+SANGRE)?\b`, units.gDl)] },
 
   // Lípidos y nutrición
   { id: 'totalCholesterol', label: 'ColT', group: 'Lípidos y nutrición', format: 'integer', patterns: [rx(String.raw`\bCOLESTEROL\s+TOTAL\b`, units.mgDl)] },
@@ -73,7 +74,6 @@ const definitions = [
   { id: 'vldl', label: 'VLDL', group: 'Lípidos y nutrición', format: 'integer', patterns: [rx(String.raw`\b(?:COLESTEROL\s+)?VLDL\b`, units.mgDl)] },
   { id: 'triglycerides', label: 'TGC', group: 'Lípidos y nutrición', format: 'integer', patterns: [rx(String.raw`\bTRIGLIC[ÉE]RIDOS\b`, units.mgDl)] },
   { id: 'proteins', label: 'Prot', group: 'Lípidos y nutrición', format: 'fixed1', patterns: [rx(String.raw`\bPROTE[IÍ]NAS(?:\s+TOTALES)?\b`, units.gDl)] },
-  { id: 'albumin', label: 'Alb', group: 'Lípidos y nutrición', format: 'fixed1', patterns: [rx(String.raw`\bALB[ÚU]MINA(?:\s+SANGRE)?\b`, units.gDl)] },
   { id: 'hba1c', label: 'HbA1c', group: 'Lípidos y nutrición', format: 'fixed1', suffix: '%', patterns: [rx(String.raw`\b(?:HEMOGLOBINA\s+GLICADA(?:\s*\(HBA1C\))?|HBA1C)\b`, units.percent)] },
 
   // Inflamación
