@@ -78,6 +78,19 @@ test('genera resumen clínico compacto con Crea/VFG y ELP agrupados', () => {
   assert.equal(summary, 'Crea: 1.0 (VFG: 84), ELP: 140/5.0/99');
 });
 
+test('clasifica albúmina como hepática y permite omitir encabezados de grupos', () => {
+  const text = 'Bilirrubina total 0.8 mg/dL Albúmina 4.2 g/dL Colesterol total 180 mg/dL';
+
+  const { summary: grouped } = extractAndFormat(text, 'grouped');
+  assert.equal(
+    grouped,
+    'Hepático: BiliT: 0.8, Alb: 4.2\nLípidos y nutrición: ColT: 180',
+  );
+
+  const { summary: ungrouped } = extractAndFormat(text, 'compact');
+  assert.equal(ungrouped, 'BiliT: 0.8, Alb: 4.2, ColT: 180');
+});
+
 test('reconoce perfil de hierro y no captura rangos de referencia', () => {
   const text = `Ferremia 69.1 ug/dL [ 33.0 - 193.0 ] Ferrosina
     TIBC 269.1 ug/dL [ 228.0 - 428.0 ] Calculado
