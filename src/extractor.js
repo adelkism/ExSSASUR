@@ -238,8 +238,18 @@ const definitions = [
   { id: 'postDexamethasoneCortisol', label: 'Cort post-Dexa', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCORTISOL\s+(?:POST|TRAS)\s+(?:DEXA(?:METASONA)?|SUPRESI[ÓO]N\s+CON\s+DEXAMETASONA)\b`, cortisolUnits)] },
   { id: 'lateNightSalivaryCortisol', label: 'CSN', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCORTISOL\s+SALIVAL(?:\s+(?:NOCTURNO|DE\s+MEDIANOCHE|23\s*H))?\b`, String.raw`(?:${cortisolUnits}|${units.ngMl}|${units.ugL})`)] },
   { id: 'cortisol', label: 'Cortisol', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCORTISOL\b(?!\s+(?:(?:LIBRE\s+)?(?:URINARIO|EN\s+ORINA)|SALIVAL|POST|TRAS|\d+\s*MIN))`, cortisolUnits)] },
-  { id: 'acth', label: 'ACTH', group: 'Endocrino', format: 'trim1', patterns: [rx(String.raw`\bACTH\b`, units.pgMl)] },
-  { id: 'igf1', label: 'IGF-1', group: 'Endocrino', format: 'integer', patterns: [rx(String.raw`\b(?:IGF\s*-?\s*1|SOMATOMEDINA\s+C)\b`, units.ngMl)] },
+  {
+    id: 'acth', label: 'ACTH', group: 'Endocrino', format: 'trim1', patterns: [
+      rx(String.raw`\bACTH\b`, units.pgMl),
+      rx(String.raw`\b(?:(?:HORMONA\s+)?(?:ADRENO|ADENO)CORTICOTROFINA|(?:HORMONA\s+)?ADRENOCORTICOTR[ÓO]PICA|CORTICOTROPINA)(?:\s*\(ACTH\))?`, units.pgMl),
+    ],
+  },
+  {
+    id: 'igf1', label: 'IGF-1', group: 'Endocrino', format: 'integer', patterns: [
+      rx(String.raw`\b(?:IGF\s*-?\s*(?:1|I)|SOMATOMEDINA\s+C)\b`, units.ngMl),
+      rx(String.raw`\bFACTOR\s+(?:DE\s+)?CRECIMIENTO\s+(?:INSUL[IÍ]NICO|INSULINO\s*-?\s*S[IÍ]MIL|SIMILAR\s+A\s+LA\s+INSULINA)(?:\s+TIPO)?\s+(?:1|I)(?:\s*\(IGF\s*-?\s*(?:1|I)\))?`, units.ngMl),
+    ],
+  },
   { id: 'growthHormone', label: 'GH', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`(?:\bHORMONA\s+DE\s+CRECIMIENTO\b(?:\s*\(GH\))?|\bGH\b)`, units.ngMl)] },
   { id: 'calcitonin', label: 'Calcitonina', group: 'Endocrino', format: 'trim2', patterns: [rx(String.raw`\bCALCITONINA\b`, String.raw`(?:${units.pgMl}|${units.ngL})`)] },
   {
