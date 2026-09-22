@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="ExSSASUR: extractor clínico independiente de resultados de laboratorio."
+    />
+    <title>ExSSASUR · Extractor clínico</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Inicio ExSSASUR">
+        <span class="brand-mark" aria-hidden="true">E</span>
+        <span>
+          <strong>ExSSASUR</strong>
+          <small>Extractor clínico</small>
+        </span>
+      </a>
+      <span class="privacy-badge">Procesamiento local</span>
+    </header>
+
+    <main class="page-shell">
+      <section class="intro">
+        <p class="eyebrow">Resultados clínicos, listos para usar</p>
+        <h1>Convierte el texto del laboratorio en un resumen limpio.</h1>
+        <p>
+          Pega el informe copiado desde el HIS. ExSSASUR identifica los resultados,
+          conserva comparadores como &lt; y &gt; y evita incluir rangos de referencia.
+        </p>
+      </section>
+
+      <section class="workspace" aria-label="Extractor de resultados">
+        <article class="panel input-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="step">1</span>
+              <h2>Texto de origen</h2>
+            </div>
+            <button id="sampleButton" class="text-button" type="button">Usar ejemplo</button>
+          </div>
+
+          <label class="sr-only" for="sourceText">Texto del informe de laboratorio</label>
+          <textarea
+            id="sourceText"
+            spellcheck="false"
+            placeholder="Pega aquí el texto copiado desde el HIS…"
+          ></textarea>
+
+          <div class="input-footer">
+            <span id="characterCount">0 caracteres</span>
+            <button id="clearButton" class="text-button danger" type="button">Limpiar</button>
+          </div>
+        </article>
+
+        <article class="panel output-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="step">2</span>
+              <h2>Resumen clínico</h2>
+            </div>
+            <label class="format-control">
+              <span>Formato</span>
+              <select id="outputFormat">
+                <option value="grouped">Por categorías</option>
+                <option value="compact">Una línea</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="emptyState" class="empty-state">
+            <span aria-hidden="true">⌁</span>
+            <p>El resumen aparecerá aquí.</p>
+          </div>
+          <pre id="resultText" hidden aria-live="polite"></pre>
+
+          <div class="output-footer">
+            <span id="resultCount">Sin resultados</span>
+            <button id="copyButton" class="primary-button" type="button" disabled>
+              Copiar resumen
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <section class="notice" aria-label="Privacidad">
+        <strong>Privacidad:</strong>
+        el texto se procesa dentro de este navegador. ExSSASUR no lo almacena ni lo envía
+        a un servidor. De todas formas, verifica el resumen antes de incorporarlo a la ficha.
+      </section>
+    </main>
+
+    <footer>
+      ExSSASUR es una herramienta clínica independiente y no reemplaza la validación profesional.
+    </footer>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
