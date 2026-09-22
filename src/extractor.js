@@ -30,8 +30,12 @@ const units = {
   umolL: String.raw`(?:u|µ|μ)mol\s*\/?\s*[lL]\b`,
   mosmKg: String.raw`mOsm\s*\/?\s*kg\b`,
   seconds: String.raw`(?:s|seg(?:undos?)?)\b`,
+  mg24h: String.raw`mg\s*\/?\s*(?:24\s*h(?:oras?|rs?)?|d[ií]a)\b`,
+  g24h: String.raw`g\s*\/?\s*(?:24\s*h(?:oras?|rs?)?|d[ií]a)\b`,
   ug24h: String.raw`(?:u|µ|μ|mc)g\s*\/?\s*(?:24\s*h(?:oras?)?|d[ií]a)\b`,
-  nmol24h: String.raw`nmol\s*\/?\s*(?:24\s*h(?:oras?)?|d[ií]a)\b`,
+  nmol24h: String.raw`nmol\s*\/?\s*(?:24\s*h(?:oras?|rs?)?|d[ií]a)\b`,
+  mmol24h: String.raw`mmol\s*\/?\s*(?:24\s*h(?:oras?|rs?)?|d[ií]a)\b`,
+  meq24h: String.raw`mEq\s*\/?\s*(?:24\s*h(?:oras?|rs?)?|d[ií]a)\b`,
   count3Ul: String.raw`(?:10\^?3|10e3|x10\^?3)\s*\/?\s*(?:u|µ|μ)[lL]\b`,
   enzyme: String.raw`(?:U|UI|IU)\s*\/?\s*[lL]\b`,
   percent: String.raw`%`,
@@ -98,6 +102,31 @@ const definitions = [
   {
     id: 'urineAcr', label: 'RAC', group: 'Renal y urinario', format: 'trim2', patterns: [
       rx(String.raw`(?:^|\s)(?:RAC|ACR|RELACI[ÓO]N\s+(?:DE\s+)?(?:ALB[ÚU]MINA|ALBUMINURIA|MICROALBUMINURIA)\s*(?:\/|\s+CON\s+|\s*[-–]\s*|\s+)\s*CREATININA(?:\s+(?:EN\s+)?ORINA)?|[ÍI]NDICE\s+(?:DE\s+)?ALB[ÚU]MINA\s*(?:\/|\s*[-–]\s*)\s*CREATININA)\b`, String.raw`(?:mg\s*\/\s*g(?:\s+CREATININA)?|mg\s*\/\s*mmol|(?:u|µ|μ|mc)g\s*\/\s*mg)\b`),
+    ],
+  },
+  {
+    id: 'urineCalcium24h', label: 'CaU 24h', group: 'Renal y urinario', format: 'trim2', patterns: [
+      rx(String.raw`\b(?:CALCIURIA|CALCIO\s+(?:EN\s+ORINA|URINARIO))(?:\s+(?:DE\s+|EN\s+)?24\s*H(?:ORAS?|RS?)?)?\b`, String.raw`(?:${units.mg24h}|${units.mmol24h})`),
+    ],
+  },
+  {
+    id: 'urineCreatinine24h', label: 'CreaU 24h', group: 'Renal y urinario', format: 'trim2', patterns: [
+      rx(String.raw`\b(?:CREATININURIA|CREATININA\s+(?:EN\s+ORINA|URINARIA))(?:\s+(?:DE\s+|EN\s+)?24\s*H(?:ORAS?|RS?)?)?\b`, String.raw`(?:${units.mg24h}|${units.g24h}|${units.mmol24h})`),
+    ],
+  },
+  {
+    id: 'urineSodium24h', label: 'NaU 24h', group: 'Renal y urinario', format: 'trim2', patterns: [
+      rx(String.raw`\b(?:NATRIURIA|(?:SODIO|NA)\s+(?:EN\s+ORINA|URINARIO))(?:\s+(?:DE\s+|EN\s+)?24\s*H(?:ORAS?|RS?)?)?\b`, String.raw`(?:${units.mmol24h}|${units.meq24h})`),
+    ],
+  },
+  {
+    id: 'urinePotassium24h', label: 'KU 24h', group: 'Renal y urinario', format: 'trim2', patterns: [
+      rx(String.raw`\b(?:(?:KALIURIA|CALIURIA)|(?:POTASIO|K)\s+(?:EN\s+ORINA|URINARIO))(?:\s+(?:DE\s+|EN\s+)?24\s*H(?:ORAS?|RS?)?)?\b`, String.raw`(?:${units.mmol24h}|${units.meq24h})`),
+    ],
+  },
+  {
+    id: 'urineChloride24h', label: 'ClU 24h', group: 'Renal y urinario', format: 'trim2', patterns: [
+      rx(String.raw`\b(?:CLORURIA|(?:CLORO|CLORURO|CL)\s+(?:EN\s+ORINA|URINARIO))(?:\s+(?:DE\s+|EN\s+)?24\s*H(?:ORAS?|RS?)?)?\b`, String.raw`(?:${units.mmol24h}|${units.meq24h})`),
     ],
   },
 
