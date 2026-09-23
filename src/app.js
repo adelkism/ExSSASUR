@@ -1,4 +1,4 @@
-import { extractAndFormat } from './extractor.js?v=2.0.5';
+import { extractAndFormat } from './extractor.js?v=2.0.6';
 
 const sourceText = document.querySelector('#sourceText');
 const resultText = document.querySelector('#resultText');
@@ -6,6 +6,7 @@ const emptyState = document.querySelector('#emptyState');
 const characterCount = document.querySelector('#characterCount');
 const resultCount = document.querySelector('#resultCount');
 const groupResults = document.querySelector('#groupResults');
+const examColons = document.querySelector('#examColons');
 const copyButton = document.querySelector('#copyButton');
 const clearButton = document.querySelector('#clearButton');
 const sampleButton = document.querySelector('#sampleButton');
@@ -26,7 +27,9 @@ function render() {
   characterCount.textContent = `${text.length.toLocaleString('es-CL')} caracteres`;
 
   const mode = groupResults.checked ? 'grouped' : 'compact';
-  const { results, summary } = extractAndFormat(text, mode);
+  const { results, summary } = extractAndFormat(text, mode, {
+    showExamColons: examColons.checked,
+  });
   currentSummary = summary;
 
   const hasResults = Boolean(summary);
@@ -59,6 +62,7 @@ async function copySummary() {
 
 sourceText.addEventListener('input', render);
 groupResults.addEventListener('change', render);
+examColons.addEventListener('change', render);
 copyButton.addEventListener('click', copySummary);
 
 clearButton.addEventListener('click', () => {
