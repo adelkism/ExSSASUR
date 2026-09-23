@@ -1,4 +1,4 @@
-import { extractAndFormat } from './extractor.js?v=2.0.3';
+import { extractAndFormat } from './extractor.js?v=2.0.4';
 
 const sourceText = document.querySelector('#sourceText');
 const resultText = document.querySelector('#resultText');
