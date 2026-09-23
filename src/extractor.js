@@ -162,7 +162,7 @@ const definitions = [
     ],
   },
   { id: 'alkalinePhosphatase', label: 'FA', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\bFOSFATASA(?:S)?\s+ALCALINA(?:S)?\b`, units.uL)] },
-  { id: 'ggt', label: 'GGT', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\b(?:GAMMA\s+GLUTAMIL(?:TRANSPEPTIDASA|\s+TRANSFERASA)?|GGT)\b`, units.uL)] },
+  { id: 'ggt', label: 'GGT', group: 'Hepático', format: 'integer', patterns: [rx(String.raw`\b(?:GAM(?:M)?A[\s-]*GLUTAMIL(?:[\s-]*(?:TRANSPEPTIDASA|TRANSFERASA))?|GGT)\b(?:\s*\(GGT\))?`, units.uL)] },
   { id: 'albumin', label: 'Alb', group: 'Hepático', format: 'fixed1', patterns: [rx(String.raw`\bALB[ÚU]MINA(?:\s+SANGRE)?\b`, units.gDl)] },
   { id: 'proteins', label: 'Prot', group: 'Hepático', format: 'fixed1', patterns: [rx(String.raw`\bPROTE[IÍ]NAS(?:\s+TOTALES)?\b`, units.gDl)] },
 
@@ -208,7 +208,7 @@ const definitions = [
   { id: 'tsh', label: 'TSH', group: 'Endocrino', format: 'raw', patterns: [rx(String.raw`(?:\bHORMONA\s+TIROESTIMULANTE\s*\(TSH\)|\bTSH\b\)?)`, units.uiMl)] },
   {
     id: 'totalT3', label: 'T3', group: 'Endocrino', format: 'raw', patterns: [
-      rx(String.raw`\b(?:TRIYODOTIRONINA|TRIIODOTIRONINA)\s+TOTAL(?:\s*\(T3\))?`, String.raw`(?:${units.ngMl}|${units.ngDl}|${units.nmolL})`),
+      rx(String.raw`\b(?:TRIYODOTIRONINA|TRIIODOTIRONINA)\b(?!\s+LIBRE)(?:\s+TOTAL)?(?:\s*\(T3\))?`, String.raw`(?:${units.ngMl}|${units.ngDl}|${units.nmolL})`),
       rx(String.raw`\bT3\s+TOTAL\b`, String.raw`(?:${units.ngMl}|${units.ngDl}|${units.nmolL})`),
       rx(String.raw`\bT3\b(?!\s*(?:LIBRE|L\b))`, String.raw`(?:${units.ngMl}|${units.ngDl}|${units.nmolL})`),
     ],
@@ -306,6 +306,29 @@ export function normalizeText(text) {
     .replace(/[\t\r\n]+/g, ' ')
     .replace(/\s{2,}/g, ' ')
     .trim();
+}
+
+export function extractReceptionDate(sourceText) {
+  const text = normalizeText(sourceText);
+  if (!text) return null;
+
+  const labels = [
+    String.raw`FECHA\s*\/\s*HORA\s+DE\s+RECEPCI[ÓO]N(?:\s+DE\s+LA)?\s+MUESTRA`,
+    String.raw`FECHA\s+(?:Y\s+HORA\s+)?DE\s+RECEPCI[ÓO]N(?:\s+DE\s+LA)?\s+MUESTRA`,
+    String.raw`FECHA\s*\/\s*HORA\s+(?:DE\s+)?TOMA\s+DE\s+MUESTRA`,
+    String.raw`FECHA\s+(?:Y\s+HORA\s+)?(?:DE\s+)?TOMA\s+DE\s+MUESTRA`,
+  ];
+  const pattern = new RegExp(
+    String.raw`(?:${labels.join('|')})\s*:?[\s-]*(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})\b`,
+    'i',
+  );
+  const match = pattern.exec(text);
+  if (!match) return null;
+
+  const day = match[1].padStart(2, '0');
+  const month = match[2].padStart(2, '0');
+  const year = match[3].slice(-2);
+  return `${day}.${month}.${year}`;
 }
 
 function formatValue(token, format) {
@@ -589,5 +612,10 @@ export function formatClinicalSummary(results, mode = 'grouped') {
 
 export function extractAndFormat(text, mode = 'grouped') {
   const results = extractLabs(text);
-  return { results, summary: formatClinicalSummary(results, mode) };
+  const receptionDate = extractReceptionDate(text);
+  const clinicalSummary = formatClinicalSummary(results, mode);
+  const summary = [receptionDate ? `Exs ${receptionDate}` : '', clinicalSummary]
+    .filter(Boolean)
+    .join('\n');
+  return { results, receptionDate, summary };
 }
