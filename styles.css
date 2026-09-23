@@ -235,6 +235,13 @@ textarea::placeholder {
   user-select: none;
 }
 
+.output-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
 .group-control input {
   position: absolute;
   width: 1px;
@@ -421,7 +428,14 @@ footer {
     gap: 12px;
   }
 
-  .group-control {
+  .group-control,
+  .output-controls {
     flex-shrink: 0;
+  }
+
+  .output-controls {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 7px;
   }
 }

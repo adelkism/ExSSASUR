@@ -589,16 +589,17 @@ export function extractLabs(sourceText) {
   return results;
 }
 
-function compactItems(results) {
+function compactItems(results, showExamColons = true) {
   const byId = new Map(results.map((result) => [result.id, result]));
   const consumed = new Set();
   const items = [];
+  const labeledValue = (label, value) => `${label}${showExamColons ? ':' : ''} ${value}`;
 
   const creatinine = byId.get('creatinine');
   const egfr = byId.get('egfr');
   if (creatinine) {
-    const egfrText = egfr ? ` (VFG: ${egfr.value})` : '';
-    items.push({ group: creatinine.group, text: `Crea: ${creatinine.value}${egfrText}` });
+    const egfrText = egfr ? ` (${labeledValue('VFG', egfr.value)})` : '';
+    items.push({ group: creatinine.group, text: `${labeledValue('Crea', creatinine.value)}${egfrText}` });
     consumed.add('creatinine');
     if (egfr) consumed.add('egfr');
   }
@@ -609,7 +610,7 @@ function compactItems(results) {
   if (sodium && potassium && chloride) {
     items.push({
       group: sodium.group,
-      text: `ELP: ${sodium.value}/${potassium.value}/${chloride.value}`,
+      text: labeledValue('ELP', `${sodium.value}/${potassium.value}/${chloride.value}`),
     });
     consumed.add('sodium');
     consumed.add('potassium');
@@ -627,7 +628,10 @@ function compactItems(results) {
       ].filter(Boolean);
       items.push({
         group: result.group,
-        text: `Synacthen: ${synacthenPoints.map((point) => `${point.label}: ${point.value}`).join(', ')}`,
+        text: labeledValue(
+          'Synacthen',
+          synacthenPoints.map((point) => labeledValue(point.label, point.value)).join(', '),
+        ),
       });
       for (const point of synacthenPoints) consumed.add(point.id);
       continue;
@@ -636,21 +640,22 @@ function compactItems(results) {
     if (result.id === 'wbc' && byId.has('anc')) {
       items.push({
         group: result.group,
-        text: `GB: ${result.value} (RAN: ${byId.get('anc').value})`,
+        text: `${labeledValue('GB', result.value)} (${labeledValue('RAN', byId.get('anc').value)})`,
       });
       consumed.add('anc');
       continue;
     }
 
-    items.push({ group: result.group, text: `${result.label}: ${result.value}` });
+    items.push({ group: result.group, text: labeledValue(result.label, result.value) });
   }
 
   return items;
 }
 
-export function formatClinicalSummary(results, mode = 'grouped') {
+export function formatClinicalSummary(results, mode = 'grouped', options = {}) {
   if (!results.length) return '';
-  const items = compactItems(results);
+  const showExamColons = options.showExamColons ?? true;
+  const items = compactItems(results, showExamColons);
 
   if (mode === 'compact') {
     return items.map((item) => item.text).join(', ');
@@ -666,10 +671,10 @@ export function formatClinicalSummary(results, mode = 'grouped') {
     .join('\n');
 }
 
-export function extractAndFormat(text, mode = 'grouped') {
+export function extractAndFormat(text, mode = 'grouped', options = {}) {
   const results = extractLabs(text);
   const receptionDate = extractReceptionDate(text);
-  const clinicalSummary = formatClinicalSummary(results, mode);
+  const clinicalSummary = formatClinicalSummary(results, mode, options);
   const summary = [receptionDate ? `Exs ${receptionDate}` : '', clinicalSummary]
     .filter(Boolean)
     .join('\n');
