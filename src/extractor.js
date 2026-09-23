@@ -312,22 +312,31 @@ export function extractReceptionDate(sourceText) {
   const text = normalizeText(sourceText);
   if (!text) return null;
 
-  const labels = [
-    String.raw`FECHA\s*\/\s*HORA\s+DE\s+RECEPCI[ÓO]N(?:\s+DE\s+LA)?\s+MUESTRA`,
-    String.raw`FECHA\s+(?:Y\s+HORA\s+)?DE\s+RECEPCI[ÓO]N(?:\s+DE\s+LA)?\s+MUESTRA`,
-    String.raw`FECHA\s*\/\s*HORA\s+(?:DE\s+)?TOMA\s+DE\s+MUESTRA`,
-    String.raw`FECHA\s+(?:Y\s+HORA\s+)?(?:DE\s+)?TOMA\s+DE\s+MUESTRA`,
+  const dateToken = String.raw`(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}|\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2})`;
+  const labelsByPriority = [
+    String.raw`FECHA(?:\s*\/\s*HORA|\s+Y\s+HORA)?\s+(?:DE\s+)?(?:TOMA|OBTENCI[ÓO]N|EXTRACCI[ÓO]N|RECOLECCI[ÓO]N)(?:\s+DE(?:\s+LA)?)?\s+MUESTRA`,
+    String.raw`FECHA(?:\s*\/\s*HORA|\s+Y\s+HORA)?\s+(?:DE\s+)?RECEPCI[ÓO]N(?:\s+DE(?:\s+LA)?\s+MUESTRA)?`,
+    String.raw`RECEPCI[ÓO]N\s+(?:DE(?:\s+LA)?\s+)?MUESTRA`,
   ];
-  const pattern = new RegExp(
-    String.raw`(?:${labels.join('|')})\s*:?[\s-]*(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})\b`,
-    'i',
-  );
-  const match = pattern.exec(text);
-  if (!match) return null;
 
-  const day = match[1].padStart(2, '0');
-  const month = match[2].padStart(2, '0');
-  const year = match[3].slice(-2);
+  let date = null;
+  for (const label of labelsByPriority) {
+    const afterLabel = new RegExp(
+      String.raw`${label}(?:\s*[:;|–—-]\s*|\s+)(?:MUESTRA\s*[:;|–—-]?\s*)?[^\d]{0,50}${dateToken}\b`,
+      'i',
+    ).exec(text);
+    if (afterLabel) {
+      date = afterLabel[1];
+      break;
+    }
+  }
+  if (!date) return null;
+
+  const parts = date.split(/[\/.\-]/);
+  const isoOrder = parts[0].length === 4;
+  const day = (isoOrder ? parts[2] : parts[0]).padStart(2, '0');
+  const month = parts[1].padStart(2, '0');
+  const year = (isoOrder ? parts[0] : parts[2]).slice(-2);
   return `${day}.${month}.${year}`;
 }
 
