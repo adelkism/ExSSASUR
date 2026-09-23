@@ -25,6 +25,7 @@ La inclusión en este extractor no implica que una prestación se procese actual
 ## Hepático, lípidos y nutrición
 
 - Bilirrubina total, directa e indirecta, GOT/TGO/AST, GPT/TGP/ALT, fosfatasa alcalina, GGT, albúmina y proteínas totales.
+- GGT también reconoce las variantes «gamaglutamil transferasa», «gama glutamil» y «gamma glutamil».
 - Colesterol total, HDL, LDL, VLDL, triglicéridos, HbA1c, vitamina B12, folato y prealbúmina.
 
 ## Inflamación, cardíaco y coagulación
@@ -40,6 +41,7 @@ La inclusión en este extractor no implica que una prestación se procese actual
 ## Endocrino
 
 - Tiroides: TSH, T3 total/libre, T4 total/libre, tiroglobulina, Anti-Tg, Anti-TPO y TRAb.
+- Si el texto incluye la fecha/hora de recepción o toma de muestra, el resumen comienza con `Exs dd.mm.aa`.
 - Gonadal: LH, FSH, estradiol, progesterona, prolactina, testosterona total, SHBG y beta-HCG.
 - Metabólico/hipófisis: insulina, péptido C, IGF-1, GH, calcitonina, PTH y vitamina D.
 - Suprarrenal: ACTH, cortisol basal, cortisol libre urinario de 24 h, cortisol post-dexametasona, cortisol salival nocturno y test de Synacthen con tiempos 0/30/60 minutos.
