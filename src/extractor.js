@@ -313,6 +313,25 @@ export function extractReceptionDate(sourceText) {
   if (!text) return null;
 
   const dateToken = String.raw`(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}|\d{4}[\/.\-]\d{1,2}[\/.\-]\d{1,2})`;
+  const formatDate = (date) => {
+    const parts = date.split(/[\/.\-]/);
+    const isoOrder = parts[0].length === 4;
+    const day = Number(isoOrder ? parts[2] : parts[0]);
+    const month = Number(parts[1]);
+    const fullYear = Number(isoOrder ? parts[0] : parts[2]);
+    const year = fullYear < 100 ? 2000 + fullYear : fullYear;
+    const validDate = new Date(Date.UTC(year, month - 1, day));
+    if (
+      validDate.getUTCFullYear() !== year
+      || validDate.getUTCMonth() !== month - 1
+      || validDate.getUTCDate() !== day
+    ) return null;
+    return {
+      display: `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${String(year).slice(-2)}`,
+      key: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      year,
+    };
+  };
   const labelsByPriority = [
     String.raw`FECHA(?:\s*\/\s*HORA|\s+Y\s+HORA)?\s+(?:DE\s+)?(?:TOMA|OBTENCI[ÓO]N|EXTRACCI[ÓO]N|RECOLECCI[ÓO]N)(?:\s+DE(?:\s+LA)?)?\s+MUESTRA`,
     String.raw`FECHA(?:\s*\/\s*HORA|\s+Y\s+HORA)?\s+(?:DE\s+)?RECEPCI[ÓO]N(?:\s+DE(?:\s+LA)?\s+MUESTRA)?`,
@@ -330,14 +349,42 @@ export function extractReceptionDate(sourceText) {
       break;
     }
   }
-  if (!date) return null;
+  if (date) return formatDate(date)?.display ?? null;
 
-  const parts = date.split(/[\/.\-]/);
-  const isoOrder = parts[0].length === 4;
-  const day = (isoOrder ? parts[2] : parts[0]).padStart(2, '0');
-  const month = parts[1].padStart(2, '0');
-  const year = (isoOrder ? parts[0] : parts[2]).slice(-2);
-  return `${day}.${month}.${year}`;
+  // El PDF del HHHA copia primero todas las etiquetas de la tabla y después
+  // sus valores. En ese formato la fecha ya no queda junto a su etiqueta.
+  const hasFlattenedHisHeader = /FECHA\s*\/\s*HORA\s+DE\s+T\.?\s*MUESTRA/i.test(text)
+    && /FECHA\s*\/\s*HORA\s+DE\s+RECEPCI[ÓO]N\s+MUESTRA/i.test(text)
+    && /N(?:[º°]|O\.?|RO\.?|[ÚU]MERO)?\s*PETICI[ÓO]N\s*:/i.test(text);
+  if (!hasFlattenedHisHeader) return null;
+
+  const header = text.slice(0, 2200);
+  const petitionMatch = /N(?:[º°]|O\.?|RO\.?|[ÚU]MERO)?\s*PETICI[ÓO]N\s*:\s*(\d{2})(\d{2})(\d{2})\d{2,}/i.exec(header);
+  const petitionDate = petitionMatch
+    ? formatDate(`${petitionMatch[3]}/${petitionMatch[2]}/20${petitionMatch[1]}`)
+    : null;
+
+  const candidates = [...header.matchAll(new RegExp(dateToken, 'g'))]
+    .map((match) => formatDate(match[1]))
+    .filter(Boolean);
+  const episodeCandidates = petitionDate
+    ? candidates.filter((candidate) => Math.abs(candidate.year - petitionDate.year) <= 1)
+    : candidates;
+  if (!episodeCandidates.length) return null;
+
+  const counts = new Map();
+  for (const candidate of episodeCandidates) {
+    const current = counts.get(candidate.key) ?? { ...candidate, count: 0 };
+    current.count += 1;
+    counts.set(candidate.key, current);
+  }
+  const ranked = [...counts.values()].sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    if (petitionDate && a.key === petitionDate.key) return -1;
+    if (petitionDate && b.key === petitionDate.key) return 1;
+    return 0;
+  });
+  return ranked[0]?.display ?? null;
 }
 
 function formatValue(token, format) {
