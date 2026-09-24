@@ -13,13 +13,13 @@ test('todos los controles usados por la aplicación existen en la interfaz', () 
   }
 });
 
-test('los tres módulos de trabajo tienen navegación y vista', () => {
-  for (const view of ['results', 'consultation', 'pending']) {
+test('los cuatro módulos de trabajo tienen navegación y vista', () => {
+  for (const view of ['results', 'evolution', 'outputs', 'closure']) {
     assert.match(html, new RegExp(`data-view-target=["']${view}["']`));
     assert.match(html, new RegExp(`data-view=["']${view}["']`));
   }
 });
 
-test('la primera versión no persiste información clínica en el navegador', () => {
+test('la aplicación no persiste información clínica en el navegador', () => {
   assert.doesNotMatch(app, /localStorage|sessionStorage|indexedDB/);
 });
