@@ -1,6 +1,6 @@
 # ExSSASUR
 
-Herramienta clínica independiente para convertir texto copiado desde el HIS en un resumen breve y verificable, preparar el cierre documental de una consulta y ordenar pendientes de la sesión.
+Herramienta clínica independiente para convertir texto copiado desde el HIS en un resumen breve y preparar los distintos campos documentales usados durante una atención en SSASUR.
 
 ## Características
 
@@ -10,17 +10,19 @@ Herramienta clínica independiente para convertir texto copiado desde el HIS en 
 - Agrupa creatinina/VFG y electrolitos en un formato clínico compacto.
 - Permite activar o desactivar los encabezados por categorías.
 - Deduplica exámenes repetidos.
-- Permite enviar el resumen de laboratorio al borrador de una consulta.
-- Estructura resumen, exámenes y plan en un cierre verificable.
-- Reconoce acciones explícitas del plan y las transforma en pendientes editables.
-- Permite asignar tipo, responsable, plazo y estado a cada pendiente.
+- Permite enviar el resumen de laboratorio directamente a la evolución.
+- Compone la anamnesis en el formato `AM`, `MED`, `AQX`, `AOBST` y `HAB`.
+- Prepara bloques separados para Anamnesis, Diagnóstico, Plan y Tratamiento, OA/IC, Receta y Acción a realizar.
+- Convierte la conducta documentada en una lista operativa de exámenes, prescripciones y parámetros del próximo control.
+- Detecta inconsistencias documentales, sin evaluar ni sugerir decisiones clínicas.
+- Incluye un checklist manual para cerrar la atención en SSASUR.
 - Procesa todo localmente en el navegador: no almacena ni transmite el texto pegado.
 
-## Consulta y pendientes
+## Evolución, salidas y cierre
 
-Los módulos `Consulta` y `Pendientes` trabajan exclusivamente en la memoria de la pestaña. Los datos desaparecen al recargar o cerrar la página. Esta primera versión no es una agenda multipaciente y no reemplaza la ficha clínica ni los sistemas institucionales de seguimiento.
+Los módulos `Evolución`, `Salidas SSASUR` y `Cierre` trabajan exclusivamente en la memoria de la pestaña. Los datos desaparecen al recargar o cerrar la página. La aplicación no es una agenda multipaciente y no reemplaza la ficha clínica ni los sistemas institucionales de seguimiento.
 
-La extracción de pendientes se limita a verbos de acción explícitos, como `solicitar`, `derivar`, `avisar` o `controlar`. El borrador y cada pendiente deben revisarse antes de copiarlos.
+Las alertas comparan únicamente la coherencia entre los textos y parámetros ingresados por el profesional. Cada bloque debe revisarse antes de copiarlo.
 
 La lista detallada de prestaciones reconocidas está en [CATALOGO.md](CATALOGO.md).
 
