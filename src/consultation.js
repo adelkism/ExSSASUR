@@ -26,6 +26,155 @@ export function parseListItems(value) {
     .filter(Boolean);
 }
 
+const IMPORT_FIELD_LABELS = new Map([
+  ['AM', 'am'],
+  ['MED', 'medications'],
+  ['AQX', 'surgeries'],
+  ['AOBST', 'obstetric'],
+  ['HAB', 'habits'],
+]);
+
+const IMPORT_SECTION_HEADINGS = new Map([
+  ['ANAMNESIS', 'anamnesis'],
+  ['EXAMEN FISICO', 'previousPhysicalExam'],
+  ['HIPOTESIS DIAGNOSTICA', 'previousDiagnosticHypothesis'],
+  ['DIAGNOSTICO', 'previousDiagnosis'],
+  ['TRATAMIENTO E INDICACIONES', 'previousTreatmentIndications'],
+  ['PLAN Y TRATAMIENTO', 'previousTreatmentIndications'],
+  ['OBSERVACIONES', 'previousObservations'],
+  ['EXAMENES COMPLEMENTARIOS', 'previousComplementaryExams'],
+]);
+
+const IMPORTABLE_EVOLUTION_FIELDS = [
+  'am',
+  'medications',
+  'surgeries',
+  'obstetric',
+  'habits',
+  'previousSummary',
+];
+
+function normalizedHeading(value) {
+  return clean(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase()
+    .replace(/^\*+\s*/, '')
+    .replace(/\s*\(\d+\s+CARACTERES[^)]*\)\s*$/i, '')
+    .replace(/[:.]+$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sectionForLine(line) {
+  return IMPORT_SECTION_HEADINGS.get(normalizedHeading(line)) ?? '';
+}
+
+function antecedentsFromLine(line) {
+  const matches = [];
+  const pattern = /(?:^|\s)(AM|MED|AQX|AOBST|HAB)\s*:\s*(.*?)(?=\s+(?:AM|MED|AQX|AOBST|HAB)\s*:|$)/gi;
+  for (const match of line.matchAll(pattern)) {
+    matches.push({ label: match[1].toUpperCase(), value: clean(match[2]) });
+  }
+  return matches;
+}
+
+function isAdministrativeEvolutionLine(line) {
+  return /^(?:ESTADO ATENCI[ÓO]N|ICS? ASOCIADAS?|CONTROL ASOCIADO|RESPONSABLE DE LA ATENCI[ÓO]N|ACCI[ÓO]N A REALIZAR)\b/i.test(clean(line));
+}
+
+function compactImportedBlock(lines) {
+  const compacted = [];
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/[ \t]+$/g, '');
+    if (!line.trim() && (!compacted.length || !compacted.at(-1))) continue;
+    compacted.push(line.trim());
+  }
+  while (compacted.at(-1) === '') compacted.pop();
+  return compacted.join('\n').trim();
+}
+
+export function extractEvolutionImport(sourceText) {
+  const imported = {
+    am: '',
+    medications: '',
+    surgeries: '',
+    obstetric: '',
+    habits: '',
+    previousSummary: '',
+    previousPhysicalExam: '',
+    previousDiagnosticHypothesis: '',
+    previousDiagnosis: '',
+    previousTreatmentIndications: '',
+    previousObservations: '',
+    previousComplementaryExams: '',
+  };
+  const sections = { preamble: [], anamnesis: [] };
+  let currentSection = 'preamble';
+  let explicitAnamnesis = false;
+
+  for (const rawLine of String(sourceText ?? '').replace(/\r/g, '').split('\n')) {
+    const heading = sectionForLine(rawLine);
+    if (heading) {
+      currentSection = heading;
+      sections[currentSection] ??= [];
+      if (heading === 'anamnesis') explicitAnamnesis = true;
+      continue;
+    }
+
+    const antecedents = antecedentsFromLine(rawLine);
+    if (antecedents.length) {
+      for (const { label, value } of antecedents) {
+        const field = IMPORT_FIELD_LABELS.get(label);
+        if (field && value) imported[field] = value;
+      }
+      continue;
+    }
+
+    if (/^[\s._–—-]+$/.test(rawLine) || isAdministrativeEvolutionLine(rawLine)) continue;
+    sections[currentSection] ??= [];
+    sections[currentSection].push(rawLine);
+  }
+
+  imported.previousSummary = compactImportedBlock(
+    explicitAnamnesis ? sections.anamnesis : sections.preamble,
+  );
+  for (const field of Object.keys(imported).filter((key) => key.startsWith('previous') && key !== 'previousSummary')) {
+    imported[field] = compactImportedBlock(sections[field] ?? []);
+  }
+  return imported;
+}
+
+export function formatEvolutionImportPreview(imported) {
+  const antecedents = [
+    ['AM', imported.am],
+    ['MED', imported.medications],
+    ['AQX', imported.surgeries],
+    ['AOBST', imported.obstetric],
+    ['HAB', imported.habits],
+  ]
+    .filter(([, value]) => clean(value))
+    .map(([label, value]) => `${label}: ${clean(value)}`);
+  return [antecedents.join('\n'), clean(imported.previousSummary)].filter(Boolean).join('\n\n');
+}
+
+export function mergeEvolutionImport(currentData, imported) {
+  const values = { ...currentData };
+  const applied = [];
+  const skipped = [];
+  for (const field of IMPORTABLE_EVOLUTION_FIELDS) {
+    const importedValue = clean(imported[field]);
+    if (!importedValue) continue;
+    if (clean(currentData[field])) {
+      skipped.push(field);
+      continue;
+    }
+    values[field] = importedValue;
+    applied.push(field);
+  }
+  return { values, applied, skipped };
+}
+
 export function composeAnamnesis(data) {
   const antecedents = [
     ['AM', data.am],

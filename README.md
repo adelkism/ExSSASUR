@@ -11,6 +11,7 @@ Herramienta clínica independiente para convertir texto copiado desde el HIS en 
 - Permite activar o desactivar los encabezados por categorías.
 - Deduplica exámenes repetidos.
 - Permite enviar el resumen de laboratorio directamente a la evolución.
+- Importa una evolución previa y distribuye antecedentes y resumen cronológico en campos vacíos.
 - Compone la anamnesis en el formato `AM`, `MED`, `AQX`, `AOBST` y `HAB`.
 - Prepara bloques separados para Anamnesis, Diagnóstico, Plan y Tratamiento, OA/IC, Receta y Acción a realizar.
 - Convierte la conducta documentada en una lista operativa de exámenes, prescripciones y parámetros del próximo control.
@@ -23,6 +24,8 @@ Herramienta clínica independiente para convertir texto copiado desde el HIS en 
 Los módulos `Evolución`, `Salidas SSASUR` y `Cierre` trabajan exclusivamente en la memoria de la pestaña. Los datos desaparecen al recargar o cerrar la página. La aplicación no es una agenda multipaciente y no reemplaza la ficha clínica ni los sistemas institucionales de seguimiento.
 
 Las alertas comparan únicamente la coherencia entre los textos y parámetros ingresados por el profesional. Cada bloque debe revisarse antes de copiarlo.
+
+El importador de evoluciones usa encabezados explícitos para separar `AM`, `MED`, `AQX`, `AOBST`, `HAB` y Anamnesis. El examen físico, el diagnóstico y las indicaciones anteriores se muestran como detectados, pero no se trasladan a los campos del control actual. Tampoco se reemplazan campos que ya tengan contenido.
 
 La lista detallada de prestaciones reconocidas está en [CATALOGO.md](CATALOGO.md).
 

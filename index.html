@@ -6,7 +6,7 @@
     <meta name="description" content="ExSSASUR: extractor y compositor local para el flujo documental de SSASUR." />
     <title>ExSSASUR · Flujo SSASUR</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=2.2.0" />
+    <link rel="stylesheet" href="styles.css?v=2.2.1" />
   </head>
   <body>
     <header class="topbar">
@@ -72,6 +72,33 @@
             <p>Conserva tu estructura habitual. Los datos permanecen solamente en esta pestaña.</p>
           </div>
           <button id="evolutionSampleButton" class="secondary-button large-button" type="button">Cargar ejemplo ficticio</button>
+        </section>
+
+        <section class="evolution-importer" aria-labelledby="evolutionImportTitle">
+          <div class="importer-heading">
+            <div>
+              <p class="eyebrow">Importación opcional</p>
+              <h2 id="evolutionImportTitle">Pega una evolución previa</h2>
+              <p>Reconoce antecedentes y el resumen cronológico sin copiar el examen físico, diagnóstico ni plan anteriores al control actual.</p>
+            </div>
+            <button id="previousEvolutionSampleButton" class="text-button" type="button">Usar ejemplo ficticio</button>
+          </div>
+          <div class="evolution-import-grid">
+            <div class="import-source">
+              <label class="field" for="previousEvolutionSource"><span>Texto copiado desde la evolución</span><textarea id="previousEvolutionSource" spellcheck="false" placeholder="Pega aquí la evolución previa copiada desde SSASUR…"></textarea></label>
+              <div class="input-footer">
+                <span id="previousEvolutionCharacterCount">0 caracteres</span>
+                <button id="clearPreviousEvolutionButton" class="text-button danger" type="button">Limpiar</button>
+              </div>
+            </div>
+            <div class="import-preview-panel">
+              <div class="import-preview-heading"><strong>Vista previa</strong><span id="previousEvolutionStatus">Sin contenido reconocido</span></div>
+              <div id="previousEvolutionPreviewEmpty" class="empty-state compact-empty"><span aria-hidden="true">⌁</span><p>Los campos reconocidos aparecerán aquí.</p></div>
+              <pre id="previousEvolutionPreview" hidden aria-live="polite"></pre>
+              <p id="previousEvolutionSectionsNotice" class="import-notice" hidden></p>
+              <button id="applyPreviousEvolutionButton" class="primary-button" type="button" disabled>Agregar a evolución</button>
+            </div>
+          </div>
         </section>
 
         <section class="composer-grid" aria-label="Datos de la evolución">
@@ -170,6 +197,6 @@
     </main>
     <footer>ExSSASUR apoya el trabajo documental y no reemplaza la validación profesional ni los sistemas institucionales.</footer>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="src/app.js?v=2.2.0"></script>
+    <script type="module" src="src/app.js?v=2.2.1"></script>
   </body>
 </html>

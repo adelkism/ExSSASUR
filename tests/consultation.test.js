@@ -4,9 +4,12 @@ import {
   buildClosureItems,
   buildSsasurOutputs,
   composeAnamnesis,
+  extractEvolutionImport,
   findDocumentationWarnings,
+  formatEvolutionImportPreview,
   formatEncounterDate,
   formatFollowUp,
+  mergeEvolutionImport,
   normalizeLabSummary,
   parseListItems,
   suggestFollowUpFromPlan,
@@ -37,6 +40,75 @@ const fictional = {
   requiresObservation: false,
   counterRefer: false,
 };
+
+const previousEvolutionFixture = `AM: HIPERTENSIÓN ARTERIAL
+MED: MEDICAMENTO X 1 COMP/DÍA
+AQX: CIRUGÍA FICTICIA
+HAB: TABACO NO
+
+AGO.26
+CONTROL PREVIO SIN EVENTOS. SE REVISARON EXÁMENES DE SEGUIMIENTO.
+EXS 21.08.26 TSH 2.30, T4L 1.10
+
+Examen Físico
+BUEN ESTADO GENERAL.
+
+Hipótesis Diagnóstica
+CONTROL ENDOCRINOLÓGICO FICTICIO
+
+Diagnóstico
+DIAGNÓSTICO FICTICIO
+
+Tratamiento e Indicaciones
+MANTENER INDICACIONES PREVIAS.`;
+
+test('extrae antecedentes y resumen desde una evolución previa', () => {
+  const imported = extractEvolutionImport(previousEvolutionFixture);
+  assert.equal(imported.am, 'HIPERTENSIÓN ARTERIAL');
+  assert.equal(imported.medications, 'MEDICAMENTO X 1 COMP/DÍA');
+  assert.equal(imported.surgeries, 'CIRUGÍA FICTICIA');
+  assert.equal(imported.habits, 'TABACO NO');
+  assert.equal(
+    imported.previousSummary,
+    'AGO.26\nCONTROL PREVIO SIN EVENTOS. SE REVISARON EXÁMENES DE SEGUIMIENTO.\nEXS 21.08.26 TSH 2.30, T4L 1.10',
+  );
+  assert.equal(imported.previousPhysicalExam, 'BUEN ESTADO GENERAL.');
+  assert.equal(imported.previousDiagnosticHypothesis, 'CONTROL ENDOCRINOLÓGICO FICTICIO');
+  assert.equal(imported.previousDiagnosis, 'DIAGNÓSTICO FICTICIO');
+  assert.equal(imported.previousTreatmentIndications, 'MANTENER INDICACIONES PREVIAS.');
+});
+
+test('prioriza el bloque Anamnesis cuando la evolución contiene encabezados de SSASUR', () => {
+  const imported = extractEvolutionImport(`Texto administrativo que no debe formar el resumen
+Anamnesis (18500 Caracteres restantes)
+AM: DISLIPIDEMIA
+JUL.26
+EVOLUCIÓN PREVIA FICTICIA.
+Examen Físico
+SIN REGISTRO RELEVANTE.`);
+
+  assert.equal(imported.am, 'DISLIPIDEMIA');
+  assert.equal(imported.previousSummary, 'JUL.26\nEVOLUCIÓN PREVIA FICTICIA.');
+});
+
+test('muestra una vista previa y solo completa campos vacíos', () => {
+  const imported = extractEvolutionImport(previousEvolutionFixture);
+  assert.match(formatEvolutionImportPreview(imported), /^AM: HIPERTENSIÓN ARTERIAL/m);
+  assert.doesNotMatch(formatEvolutionImportPreview(imported), /BUEN ESTADO GENERAL/);
+
+  const merged = mergeEvolutionImport({
+    am: 'ANTECEDENTE YA ESCRITO',
+    medications: '',
+    surgeries: '',
+    obstetric: '',
+    habits: '',
+    previousSummary: '',
+  }, imported);
+  assert.equal(merged.values.am, 'ANTECEDENTE YA ESCRITO');
+  assert.equal(merged.values.medications, 'MEDICAMENTO X 1 COMP/DÍA');
+  assert.deepEqual(merged.skipped, ['am']);
+  assert.deepEqual(merged.applied, ['medications', 'surgeries', 'habits', 'previousSummary']);
+});
 
 test('formatea la fecha y el resumen de laboratorio en el estilo observado', () => {
   assert.equal(formatEncounterDate('2026-09-24'), 'SEPT.26');

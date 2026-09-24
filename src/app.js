@@ -1,10 +1,13 @@
-import { extractAndFormat } from './extractor.js?v=2.2.0';
+import { extractAndFormat } from './extractor.js?v=2.2.1';
 import {
   buildClosureItems,
   buildSsasurOutputs,
+  extractEvolutionImport,
   findDocumentationWarnings,
+  formatEvolutionImportPreview,
+  mergeEvolutionImport,
   suggestFollowUpFromPlan,
-} from './consultation.js?v=2.2.0';
+} from './consultation.js?v=2.2.1';
 
 const byId = (id) => document.querySelector(`#${id}`);
 const toast = byId('toast');
@@ -25,6 +28,13 @@ const warningSummary = byId('warningSummary');
 const closureChecklist = byId('closureChecklist');
 const closureProgress = byId('closureProgress');
 const suggestFollowUpButton = byId('suggestFollowUpButton');
+const previousEvolutionSource = byId('previousEvolutionSource');
+const previousEvolutionPreview = byId('previousEvolutionPreview');
+const previousEvolutionPreviewEmpty = byId('previousEvolutionPreviewEmpty');
+const previousEvolutionCharacterCount = byId('previousEvolutionCharacterCount');
+const previousEvolutionStatus = byId('previousEvolutionStatus');
+const previousEvolutionSectionsNotice = byId('previousEvolutionSectionsNotice');
+const applyPreviousEvolutionButton = byId('applyPreviousEvolutionButton');
 
 const fieldIds = [
   'encounterDate', 'am', 'medications', 'surgeries', 'obstetric', 'habits',
@@ -50,6 +60,34 @@ const outputDefinitions = [
 const labSample = `Fecha/hora de recepción Muestra: 24/09/2026 08:42
 HORMONA TIROESTIMULANTE (TSH) 2.10 uUI/mL [0.27 - 4.2]
 TETRAIDOTIRONINA LIBRE (T4L) 1.20 ng/dL [0.93 - 1.7]`;
+
+const previousEvolutionSample = `Anamnesis
+AM: HIPERTENSIÓN ARTERIAL
+MED: MEDICAMENTO X 1 COMP/DÍA
+AQX: CIRUGÍA FICTICIA
+HAB: TABACO NO
+
+AGO.26
+CONTROL PREVIO SIN EVENTOS. SE REVISARON EXÁMENES DE SEGUIMIENTO.
+EXS 21.08.26 TSH 2.30, T4L 1.10
+
+Examen Físico
+BUEN ESTADO GENERAL.
+
+Hipótesis Diagnóstica
+CONTROL ENDOCRINOLÓGICO FICTICIO
+
+Tratamiento e Indicaciones
+MANTENER INDICACIONES PREVIAS.`;
+
+const previousSectionDefinitions = [
+  ['previousPhysicalExam', 'examen físico'],
+  ['previousDiagnosticHypothesis', 'hipótesis diagnóstica'],
+  ['previousDiagnosis', 'diagnóstico'],
+  ['previousTreatmentIndications', 'tratamiento e indicaciones'],
+  ['previousObservations', 'observaciones'],
+  ['previousComplementaryExams', 'exámenes complementarios'],
+];
 
 const fictionalSample = {
   am: 'HTA',
@@ -78,6 +116,7 @@ let currentSummary = '';
 let evolutionLabSummary = '';
 let currentOutputs = {};
 let checkedClosureItems = new Set();
+let currentEvolutionImport = extractEvolutionImport('');
 
 function localDateValue() {
   const now = new Date();
@@ -170,6 +209,36 @@ function readEvolutionData() {
     requiresObservation: byId('requiresObservation').checked,
     counterRefer: byId('counterRefer').checked,
   };
+}
+
+function renderEvolutionImport() {
+  const text = previousEvolutionSource.value;
+  currentEvolutionImport = extractEvolutionImport(text);
+  const preview = formatEvolutionImportPreview(currentEvolutionImport);
+  const recognizedFields = ['am', 'medications', 'surgeries', 'obstetric', 'habits', 'previousSummary']
+    .filter((field) => currentEvolutionImport[field]);
+  const previousSections = previousSectionDefinitions
+    .filter(([field]) => currentEvolutionImport[field])
+    .map(([, label]) => label);
+
+  previousEvolutionCharacterCount.textContent = `${text.length.toLocaleString('es-CL')} caracteres`;
+  previousEvolutionPreview.hidden = !preview;
+  previousEvolutionPreviewEmpty.hidden = Boolean(preview);
+  previousEvolutionPreview.textContent = preview;
+  applyPreviousEvolutionButton.disabled = !preview;
+  previousEvolutionStatus.textContent = recognizedFields.length
+    ? `${recognizedFields.length} ${recognizedFields.length === 1 ? 'campo reconocido' : 'campos reconocidos'}`
+    : text.trim() ? 'No se reconocieron antecedentes ni anamnesis' : 'Sin contenido reconocido';
+
+  previousEvolutionSectionsNotice.hidden = previousSections.length === 0;
+  previousEvolutionSectionsNotice.textContent = previousSections.length
+    ? `También se detectó ${previousSections.join(', ')}. Estas secciones anteriores no se copiarán a los campos del control actual.`
+    : '';
+}
+
+function clearEvolutionImport() {
+  previousEvolutionSource.value = '';
+  renderEvolutionImport();
 }
 
 function outputCard([key, title, destination]) {
@@ -278,6 +347,7 @@ function clearEvolution() {
   byId('requiresObservation').checked = false;
   byId('counterRefer').checked = false;
   checkedClosureItems.clear();
+  clearEvolutionImport();
   renderEvolution();
 }
 
@@ -294,6 +364,27 @@ addToEvolutionButton.addEventListener('click', () => {
   renderEvolution();
   setView('evolution');
   showToast('Exámenes agregados a la evolución');
+});
+previousEvolutionSource.addEventListener('input', renderEvolutionImport);
+byId('previousEvolutionSampleButton').addEventListener('click', () => {
+  previousEvolutionSource.value = previousEvolutionSample;
+  renderEvolutionImport();
+  previousEvolutionSource.focus();
+});
+byId('clearPreviousEvolutionButton').addEventListener('click', () => {
+  clearEvolutionImport();
+  previousEvolutionSource.focus();
+});
+applyPreviousEvolutionButton.addEventListener('click', () => {
+  const merged = mergeEvolutionImport(readEvolutionData(), currentEvolutionImport);
+  for (const field of merged.applied) byId(field).value = merged.values[field];
+  renderEvolution();
+  if (!merged.applied.length && merged.skipped.length) {
+    showToast('No se reemplazaron campos que ya tenían contenido');
+    return;
+  }
+  const skipped = merged.skipped.length ? ` · ${merged.skipped.length} sin reemplazar` : '';
+  showToast(`${merged.applied.length} ${merged.applied.length === 1 ? 'campo agregado' : 'campos agregados'}${skipped}`);
 });
 
 for (const id of fieldIds) byId(id).addEventListener('input', renderEvolution);
@@ -316,4 +407,5 @@ byId('resetClosureButton').addEventListener('click', () => { checkedClosureItems
 
 byId('encounterDate').value = localDateValue();
 renderResults();
+renderEvolutionImport();
 renderEvolution();
