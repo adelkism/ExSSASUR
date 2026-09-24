@@ -3,106 +3,153 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="ExSSASUR: extractor clínico independiente de resultados de laboratorio."
-    />
-    <title>ExSSASUR · Extractor clínico</title>
+    <meta name="description" content="ExSSASUR: extractor clínico y asistente local para el cierre de consultas." />
+    <title>ExSSASUR · Flujo clínico</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=2.0.6" />
+    <link rel="stylesheet" href="styles.css?v=2.1.0" />
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="#" aria-label="Inicio ExSSASUR">
         <span class="brand-mark" aria-hidden="true">E</span>
-        <span>
-          <strong>ExSSASUR</strong>
-          <small>Extractor clínico</small>
-        </span>
+        <span><strong>ExSSASUR</strong><small>Flujo clínico</small></span>
       </a>
+
+      <nav class="module-nav" aria-label="Módulos">
+        <button class="module-tab active" type="button" data-view-target="results">Resultados</button>
+        <button class="module-tab" type="button" data-view-target="consultation">Consulta</button>
+        <button class="module-tab" type="button" data-view-target="pending">Pendientes</button>
+      </nav>
       <span class="privacy-badge">Procesamiento local</span>
     </header>
 
     <main class="page-shell">
-      <section class="intro">
-        <p class="eyebrow">Resultados clínicos, listos para usar</p>
-        <h1>Convierte el texto del laboratorio en un resumen limpio.</h1>
-        <p>
-          Pega el informe copiado desde el HIS. ExSSASUR identifica los resultados,
-          conserva comparadores como &lt; y &gt; y evita incluir rangos de referencia.
-        </p>
+      <section class="app-view active" data-view="results">
+        <section class="intro">
+          <p class="eyebrow">Resultados clínicos, listos para usar</p>
+          <h1>Convierte el texto del laboratorio en un resumen limpio.</h1>
+          <p>Pega el informe copiado desde el HIS. ExSSASUR identifica los resultados, conserva comparadores como &lt; y &gt; y evita incluir rangos de referencia.</p>
+        </section>
+
+        <section class="workspace" aria-label="Extractor de resultados">
+          <article class="panel input-panel">
+            <div class="panel-heading">
+              <div><span class="step">1</span><h2>Texto de origen</h2></div>
+              <button id="sampleButton" class="text-button" type="button">Usar ejemplo</button>
+            </div>
+            <label class="sr-only" for="sourceText">Texto del informe de laboratorio</label>
+            <textarea id="sourceText" spellcheck="false" placeholder="Pega aquí el texto copiado desde el HIS…"></textarea>
+            <div class="input-footer">
+              <span id="characterCount">0 caracteres</span>
+              <button id="clearButton" class="text-button danger" type="button">Limpiar</button>
+            </div>
+          </article>
+
+          <article class="panel output-panel">
+            <div class="panel-heading">
+              <div><span class="step">2</span><h2>Resumen clínico</h2></div>
+              <div class="output-controls" aria-label="Opciones del resumen">
+                <label class="group-control" for="groupResults">
+                  <span>Agrupar</span><input id="groupResults" type="checkbox" role="switch" checked /><span class="switch-track" aria-hidden="true"></span>
+                </label>
+                <label class="group-control" for="examColons">
+                  <span>Dos puntos</span><input id="examColons" type="checkbox" role="switch" checked /><span class="switch-track" aria-hidden="true"></span>
+                </label>
+              </div>
+            </div>
+            <div id="emptyState" class="empty-state"><span aria-hidden="true">⌁</span><p>El resumen aparecerá aquí.</p></div>
+            <pre id="resultText" hidden aria-live="polite"></pre>
+            <div class="output-footer multi-action-footer">
+              <span id="resultCount">Sin resultados</span>
+              <div class="button-row">
+                <button id="addToConsultButton" class="secondary-button" type="button" disabled>Agregar a consulta</button>
+                <button id="copyButton" class="primary-button" type="button" disabled>Copiar resumen</button>
+              </div>
+            </div>
+          </article>
+        </section>
       </section>
 
-      <section class="workspace" aria-label="Extractor de resultados">
-        <article class="panel input-panel">
-          <div class="panel-heading">
-            <div>
-              <span class="step">1</span>
-              <h2>Texto de origen</h2>
+      <section class="app-view" data-view="consultation" hidden>
+        <section class="intro">
+          <p class="eyebrow">Cierre asistido de consulta</p>
+          <h1>Deja el plan documentado y los pendientes visibles.</h1>
+          <p>Redacta o pega el contenido de la consulta. El sistema prepara un borrador y reconoce únicamente acciones explícitas; todo permanece editable antes de copiarlo.</p>
+        </section>
+
+        <section class="workspace consultation-workspace" aria-label="Cierre de consulta">
+          <article class="panel consultation-input-panel">
+            <div class="panel-heading">
+              <div><span class="step">1</span><h2>Registro de consulta</h2></div>
+              <button id="consultSampleButton" class="text-button" type="button">Usar ejemplo</button>
             </div>
-            <button id="sampleButton" class="text-button" type="button">Usar ejemplo</button>
-          </div>
-
-          <label class="sr-only" for="sourceText">Texto del informe de laboratorio</label>
-          <textarea
-            id="sourceText"
-            spellcheck="false"
-            placeholder="Pega aquí el texto copiado desde el HIS…"
-          ></textarea>
-
-          <div class="input-footer">
-            <span id="characterCount">0 caracteres</span>
-            <button id="clearButton" class="text-button danger" type="button">Limpiar</button>
-          </div>
-        </article>
-
-        <article class="panel output-panel">
-          <div class="panel-heading">
-            <div>
-              <span class="step">2</span>
-              <h2>Resumen clínico</h2>
+            <div class="form-stack">
+              <label class="field compact-field" for="consultDate"><span>Fecha</span><input id="consultDate" type="date" /></label>
+              <label class="field" for="consultSummary"><span>Resumen de la consulta</span><textarea id="consultSummary" placeholder="Antecedentes relevantes y evolución…"></textarea></label>
+              <label class="field" for="consultLabs"><span>Exámenes</span><textarea id="consultLabs" placeholder="Puedes traer aquí el resumen desde Resultados…"></textarea></label>
+              <label class="field" for="consultPlan"><span>Plan indicado</span><textarea id="consultPlan" placeholder="Una acción por frase: solicitar…, derivar…, control en…"></textarea></label>
             </div>
-            <div class="output-controls" aria-label="Opciones del resumen">
-              <label class="group-control" for="groupResults">
-                <span>Agrupar</span>
-                <input id="groupResults" type="checkbox" role="switch" checked />
-                <span class="switch-track" aria-hidden="true"></span>
-              </label>
-              <label class="group-control" for="examColons">
-                <span>Dos puntos</span>
-                <input id="examColons" type="checkbox" role="switch" checked />
-                <span class="switch-track" aria-hidden="true"></span>
-              </label>
+            <div class="input-footer">
+              <span>Los datos se eliminan al recargar la página</span>
+              <button id="clearConsultButton" class="text-button danger" type="button">Limpiar</button>
             </div>
-          </div>
+          </article>
 
-          <div id="emptyState" class="empty-state">
-            <span aria-hidden="true">⌁</span>
-            <p>El resumen aparecerá aquí.</p>
-          </div>
-          <pre id="resultText" hidden aria-live="polite"></pre>
+          <article class="panel consultation-output-panel">
+            <div class="panel-heading">
+              <div><span class="step">2</span><h2>Borrador verificable</h2></div>
+              <span class="draft-badge">No firmado</span>
+            </div>
+            <div id="consultEmptyState" class="empty-state"><span aria-hidden="true">✓</span><p>El borrador aparecerá a medida que escribas.</p></div>
+            <pre id="consultDraft" hidden aria-live="polite"></pre>
+            <div class="output-footer multi-action-footer">
+              <span id="consultTaskCount">Sin acciones reconocidas</span>
+              <div class="button-row">
+                <button id="sendToPendingButton" class="secondary-button" type="button" disabled>Crear pendientes</button>
+                <button id="copyConsultButton" class="primary-button" type="button" disabled>Copiar borrador</button>
+              </div>
+            </div>
+          </article>
+        </section>
+      </section>
 
-          <div class="output-footer">
-            <span id="resultCount">Sin resultados</span>
-            <button id="copyButton" class="primary-button" type="button" disabled>
-              Copiar resumen
-            </button>
+      <section class="app-view" data-view="pending" hidden>
+        <section class="intro pending-intro">
+          <div>
+            <p class="eyebrow">Trazabilidad del plan</p>
+            <h1>Revisa responsables, plazos y estado.</h1>
+            <p>Esta bandeja corresponde solo a la sesión actual. No reemplaza la agenda, la ficha clínica ni los mecanismos institucionales de seguimiento.</p>
           </div>
-        </article>
+          <button id="addPendingButton" class="primary-button large-button" type="button">+ Agregar pendiente</button>
+        </section>
+
+        <section class="pending-summary" aria-label="Resumen de pendientes">
+          <div class="metric-card"><strong id="totalPendingMetric">0</strong><span>Total</span></div>
+          <div class="metric-card"><strong id="openPendingMetric">0</strong><span>Abiertos</span></div>
+          <div class="metric-card"><strong id="completedPendingMetric">0</strong><span>Completados</span></div>
+          <label class="filter-control" for="pendingFilter"><span>Mostrar</span><select id="pendingFilter"><option value="all">Todos</option><option value="open">Abiertos</option><option value="completed">Completados</option></select></label>
+        </section>
+
+        <section class="pending-board" aria-label="Listado de pendientes">
+          <div id="pendingEmptyState" class="empty-state pending-empty"><span aria-hidden="true">☷</span><p>Todavía no hay pendientes en esta sesión.</p></div>
+          <div id="pendingList" class="pending-list"></div>
+        </section>
+        <div class="pending-actions">
+          <span>Revisa cada elemento antes de incorporarlo a un registro institucional.</span>
+          <div class="button-row">
+            <button id="clearPendingButton" class="text-button danger" type="button">Limpiar todos</button>
+            <button id="copyPendingButton" class="primary-button" type="button" disabled>Copiar pendientes</button>
+          </div>
+        </div>
       </section>
 
       <section class="notice" aria-label="Privacidad">
-        <strong>Privacidad:</strong>
-        el texto se procesa dentro de este navegador. ExSSASUR no lo almacena ni lo envía
-        a un servidor. De todas formas, verifica el resumen antes de incorporarlo a la ficha.
+        <strong>Privacidad:</strong> el contenido se procesa dentro de este navegador y no se almacena. Verifica siempre los borradores y pendientes antes de incorporarlos a la ficha clínica.
       </section>
     </main>
 
-    <footer>
-      ExSSASUR es una herramienta clínica independiente y no reemplaza la validación profesional.
-    </footer>
-
+    <footer>ExSSASUR es una herramienta de apoyo documental y no reemplaza la validación profesional.</footer>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="src/app.js?v=2.0.6"></script>
+    <script type="module" src="src/app.js?v=2.1.0"></script>
   </body>
 </html>
