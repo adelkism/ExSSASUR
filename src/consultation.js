@@ -1,123 +1,189 @@
-const actionPattern = /\b(?:solicitar|pedir|ordenar|realizar|repetir|tomar|agendar|citar|control(?:ar)?|derivar|interconsulta|avisar|informar|comunicar|llamar|contactar|enviar|entregar|emitir|coordinar|gestionar|revisar)\b/i;
+const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEPT', 'OCT', 'NOV', 'DIC'];
 
-const categoryRules = [
-  {
-    category: 'Derivación',
-    pattern: /\b(?:derivar|derivación|interconsulta)\b/i,
-  },
-  {
-    category: 'Comunicación',
-    pattern: /\b(?:avisar|informar|comunicar|llamar|contactar)\b/i,
-  },
-  {
-    category: 'Control',
-    pattern: /\b(?:agendar|citar|control(?:ar)?|próxim[oa]\s+consulta)\b/i,
-  },
-  {
-    category: 'Documento',
-    pattern: /\b(?:receta|certificado|licencia|informe|formulario|entregar|emitir)\b/i,
-  },
-  {
-    category: 'Examen',
-    pattern: /\b(?:examen(?:es)?|laboratorio|perfil|ecograf[ií]a|tac|tomograf[ií]a|resonancia|radiograf[ií]a|densitometr[ií]a|biopsia|muestra|orina|sangre)\b/i,
-  },
-];
-
-function cleanSentence(sentence) {
-  return sentence
-    .replace(/^[\s•·–—-]+/, '')
-    .replace(/[\s.;]+$/, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+function clean(value) {
+  return String(value ?? '').replace(/\r/g, '').trim();
 }
 
-export function splitPlan(planText) {
-  if (!planText?.trim()) return [];
+export function formatEncounterDate(dateValue) {
+  const match = clean(dateValue).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return clean(dateValue).toUpperCase();
+  const month = MONTHS[Number(match[2]) - 1];
+  return month ? `${month}.${match[1].slice(-2)}` : '';
+}
 
-  return planText
+export function normalizeLabSummary(value) {
+  const text = clean(value);
+  if (!text) return '';
+  return text.replace(/^Exs\b/i, 'EXS');
+}
+
+export function parseListItems(value) {
+  if (!clean(value)) return [];
+  return value
     .replace(/\r/g, '')
-    .split(/\n+|\s*;\s*|(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚÑ])/u)
-    .map(cleanSentence)
+    .split(/\n+|\s*;\s*/)
+    .map((item) => item.replace(/^[\s•·–—-]+/, '').trim())
     .filter(Boolean);
 }
 
-export function inferTaskCategory(description) {
-  const match = categoryRules.find(({ pattern }) => pattern.test(description));
-  if (match) return match.category;
-  if (/\b(?:solicitar|pedir|ordenar|realizar|repetir|tomar|revisar)\b/i.test(description)) {
-    return 'Solicitud';
-  }
-  return 'Otro';
+export function composeAnamnesis(data) {
+  const antecedents = [
+    ['AM', data.am],
+    ['MED', data.medications],
+    ['AQX', data.surgeries],
+    ['AOBST', data.obstetric],
+    ['HAB', data.habits],
+  ]
+    .filter(([, value]) => clean(value))
+    .map(([label, value]) => `${label}: ${clean(value)}`);
+
+  const currentContent = [
+    clean(data.currentEvolution),
+    normalizeLabSummary(data.labs),
+    data.includeTreatmentInAnamnesis === false ? '' : clean(data.treatmentIndications),
+  ].filter(Boolean);
+  const current = currentContent.length
+    ? [formatEncounterDate(data.date), ...currentContent].filter(Boolean)
+    : [];
+
+  return [
+    antecedents.join('\n'),
+    clean(data.previousSummary),
+    current.join('\n'),
+  ].filter(Boolean).join('\n\n');
 }
 
-export function extractTiming(description) {
-  const exactDate = description.match(/\b([0-3]?\d)[/-]([01]?\d)[/-]((?:19|20)?\d{2})\b/);
-  if (exactDate) {
-    const [, day, month, rawYear] = exactDate;
-    const year = rawYear.length === 2 ? `20${rawYear}` : rawYear;
-    return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
-  }
-
-  const relative = description.match(
-    /\b(?:en|dentro de)\s+(\d+|un[ao]?|dos|tres|seis|doce)\s+(d[ií]as?|semanas?|mes(?:es)?|años?)\b/i,
-  );
-  if (relative) return relative[0].toLowerCase();
-
-  const temporalPhrase = description.match(
-    /\b(?:esta semana|la próxima semana|el próximo mes|próximo control|a la brevedad)\b/i,
-  );
-  return temporalPhrase ? temporalPhrase[0].toLowerCase() : '';
+export function formatOrderList(value) {
+  return parseListItems(value).map((item) => `- ${item}`).join('\n');
 }
 
-export function extractTasks(planText) {
-  return splitPlan(planText)
-    .filter((sentence) => actionPattern.test(sentence))
-    .map((description, index) => ({
-      id: `task-${index + 1}`,
-      description,
-      category: inferTaskCategory(description),
-      responsible: 'Sin asignar',
-      timing: extractTiming(description),
-      status: 'Pendiente',
-    }));
+export function formatPrescriptionList(value) {
+  return parseListItems(value).map((item) => `- ${item}`).join('\n');
 }
 
-function normalizeDate(dateValue) {
-  if (!dateValue) return '';
-  const match = String(dateValue).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) return dateValue;
-  return `${match[3]}.${match[2]}.${match[1].slice(-2)}`;
-}
+export function formatFollowUp(data) {
+  const hasFollowUp = [
+    data.followUpAction,
+    data.followUpInterval,
+    data.followUpModality,
+    data.followUpPriority,
+  ].some((value) => clean(value)) || data.requiresObservation || data.counterRefer;
+  if (!hasFollowUp) return '';
 
-export function formatConsultationDraft({ date, summary, labs, plan }, tasks = []) {
-  const sections = [];
-  const formattedDate = normalizeDate(date);
-  sections.push(formattedDate ? `Consulta ${formattedDate}` : 'Consulta');
-
-  if (summary?.trim()) sections.push(`Resumen:\n${summary.trim()}`);
-  if (labs?.trim()) sections.push(`Exámenes:\n${labs.trim()}`);
-  if (plan?.trim()) sections.push(`Plan:\n${plan.trim()}`);
-
-  if (tasks.length) {
-    const taskLines = tasks.map((task) => {
-      const timing = task.timing ? ` · ${task.timing}` : '';
-      return `- [ ] ${task.description} (${task.category}${timing})`;
-    });
-    sections.push(`Pendientes:\n${taskLines.join('\n')}`);
-  }
-
-  return sections.join('\n\n');
-}
-
-export function formatPendingList(tasks) {
-  if (!tasks.length) return '';
-  return tasks
-    .map((task) => {
-      const check = task.status === 'Completado' ? 'x' : ' ';
-      const details = [task.category, task.responsible, task.timing, task.status]
-        .filter(Boolean)
-        .join(' · ');
-      return `- [${check}] ${task.description}${details ? ` (${details})` : ''}`;
-    })
+  const fields = [
+    ['ACCIÓN', data.followUpAction],
+    ['INTERVALO', data.followUpInterval],
+    ['MODALIDAD', data.followUpModality],
+    ['PRIORIDAD', data.followUpPriority],
+    ['GESTIÓN/OBSERVACIÓN', data.requiresObservation ? 'SÍ' : 'NO'],
+    ['CONTRARREFERIR', data.counterRefer ? 'SÍ' : 'NO'],
+  ];
+  return fields
+    .filter(([, value]) => clean(value))
+    .map(([label, value]) => `${label}: ${clean(value).toUpperCase()}`)
     .join('\n');
+}
+
+const numberWords = new Map([
+  ['UN', '1'], ['UNO', '1'], ['UNA', '1'], ['DOS', '2'], ['TRES', '3'],
+  ['CUATRO', '4'], ['SEIS', '6'], ['DOCE', '12'],
+]);
+
+export function suggestFollowUpFromPlan(planText) {
+  const plan = clean(planText);
+  const suggestion = { action: '', interval: '' };
+  if (/\balta\b/i.test(plan)) suggestion.action = 'ALTA MÉDICA';
+  else if (/\bcontrol\b/i.test(plan)) suggestion.action = 'CONTROL MISMA ESPECIALIDAD';
+
+  const match = plan.match(/\b(?:en|a)\s+(\d+|un[oa]?|dos|tres|cuatro|seis|doce)\s+mes(?:es)?\b/i);
+  if (match) {
+    const raw = match[1].toUpperCase();
+    const number = numberWords.get(raw) ?? raw;
+    suggestion.interval = `${number} ${number === '1' ? 'MES' : 'MESES'}`;
+  }
+  return suggestion;
+}
+
+export function buildSsasurOutputs(data) {
+  const hypothesis = clean(data.diagnosticHypothesis);
+  return {
+    anamnesis: composeAnamnesis(data),
+    physicalExam: clean(data.physicalExam),
+    diagnosticHypothesis: hypothesis,
+    observations: clean(data.observations),
+    complementaryExams: clean(data.complementaryExams),
+    treatmentIndications: clean(data.treatmentIndications),
+    orderHypothesis: clean(data.orderHypothesis) || hypothesis,
+    orderList: formatOrderList(data.orders),
+    prescriptionList: formatPrescriptionList(data.prescriptions),
+    followUp: formatFollowUp(data),
+  };
+}
+
+function includesAny(text, patterns) {
+  return patterns.some((pattern) => pattern.test(text));
+}
+
+export function findDocumentationWarnings(data) {
+  const plan = clean(data.treatmentIndications);
+  const action = clean(data.followUpAction);
+  const warnings = [];
+
+  if (/\bcontrol\b/i.test(plan) && !action) {
+    warnings.push('El tratamiento/indicaciones menciona control, pero no se definió la acción a realizar.');
+  }
+  if (/\bcontrol\b/i.test(action) && !clean(data.followUpInterval)) {
+    warnings.push('Se seleccionó una acción de control, pero falta indicar el intervalo.');
+  }
+  const suggested = suggestFollowUpFromPlan(plan);
+  if (
+    suggested.interval &&
+    clean(data.followUpInterval) &&
+    suggested.interval !== clean(data.followUpInterval).toUpperCase()
+  ) {
+    warnings.push(`El plan menciona ${suggested.interval.toLowerCase()}, pero el intervalo seleccionado es ${clean(data.followUpInterval).toLowerCase()}.`);
+  }
+  if (/\balta\b/i.test(action) && /\bcontrol\b/i.test(plan)) {
+    warnings.push('La acción indica alta, pero el tratamiento/indicaciones todavía menciona un control.');
+  }
+  if (
+    includesAny(plan, [/\bexámenes?\b/i, /\bexs\b/i, /\bsolicitar\b/i, /\bperfil\b/i]) &&
+    parseListItems(data.orders).length === 0
+  ) {
+    warnings.push('El tratamiento/indicaciones menciona exámenes, pero la lista de solicitud está vacía.');
+  }
+  if (
+    includesAny(plan, [/\biniciar\b/i, /\bsuspender\b/i, /\baumentar\b/i, /\bdisminuir\b/i, /\bcambiar\b/i]) &&
+    parseListItems(data.prescriptions).length === 0
+  ) {
+    warnings.push('El tratamiento/indicaciones contiene un cambio farmacológico; revisa si requiere receta.');
+  }
+  if (parseListItems(data.orders).length && !clean(data.orderHypothesis) && !clean(data.diagnosticHypothesis)) {
+    warnings.push('Hay exámenes preparados, pero falta una hipótesis diagnóstica para la orden.');
+  }
+
+  return warnings;
+}
+
+export function buildClosureItems(data) {
+  const items = [
+    { id: 'evolution', label: 'Anamnesis y examen físico revisados' },
+    { id: 'diagnosis', label: 'Hipótesis y diagnóstico codificado registrados' },
+    { id: 'activity', label: 'Actividad de la atención registrada' },
+  ];
+
+  if (parseListItems(data.orders).length) {
+    items.push({ id: 'orders', label: 'Exámenes seleccionados y orden guardada' });
+  }
+  if (parseListItems(data.prescriptions).length) {
+    items.push({ id: 'prescription', label: 'Receta emitida y guardada' });
+  }
+  if (clean(data.followUpAction)) {
+    items.push({ id: 'follow-up', label: 'Acción, intervalo, modalidad y prioridad confirmados' });
+  }
+  if (data.counterRefer) {
+    items.push({ id: 'counter-reference', label: 'Contrarreferencia completada' });
+  }
+  items.push({ id: 'saved', label: 'Atención guardada y cerrada en SSASUR' });
+  return items;
 }

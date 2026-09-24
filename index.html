@@ -3,22 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="ExSSASUR: extractor clínico y asistente local para el cierre de consultas." />
-    <title>ExSSASUR · Flujo clínico</title>
+    <meta name="description" content="ExSSASUR: extractor y compositor local para el flujo documental de SSASUR." />
+    <title>ExSSASUR · Flujo SSASUR</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=2.1.0" />
+    <link rel="stylesheet" href="styles.css?v=2.2.0" />
   </head>
   <body>
     <header class="topbar">
       <a class="brand" href="#" aria-label="Inicio ExSSASUR">
         <span class="brand-mark" aria-hidden="true">E</span>
-        <span><strong>ExSSASUR</strong><small>Flujo clínico</small></span>
+        <span><strong>ExSSASUR</strong><small>Flujo documental</small></span>
       </a>
-
       <nav class="module-nav" aria-label="Módulos">
         <button class="module-tab active" type="button" data-view-target="results">Resultados</button>
-        <button class="module-tab" type="button" data-view-target="consultation">Consulta</button>
-        <button class="module-tab" type="button" data-view-target="pending">Pendientes</button>
+        <button class="module-tab" type="button" data-view-target="evolution">Evolución</button>
+        <button class="module-tab" type="button" data-view-target="outputs">Salidas SSASUR</button>
+        <button class="module-tab" type="button" data-view-target="closure">Cierre</button>
       </nav>
       <span class="privacy-badge">Procesamiento local</span>
     </header>
@@ -27,10 +27,9 @@
       <section class="app-view active" data-view="results">
         <section class="intro">
           <p class="eyebrow">Resultados clínicos, listos para usar</p>
-          <h1>Convierte el texto del laboratorio en un resumen limpio.</h1>
-          <p>Pega el informe copiado desde el HIS. ExSSASUR identifica los resultados, conserva comparadores como &lt; y &gt; y evita incluir rangos de referencia.</p>
+          <h1>Convierte el informe del laboratorio en un resumen limpio.</h1>
+          <p>Pega el texto copiado desde el HIS y úsalo directamente dentro de la evolución.</p>
         </section>
-
         <section class="workspace" aria-label="Extractor de resultados">
           <article class="panel input-panel">
             <div class="panel-heading">
@@ -44,17 +43,12 @@
               <button id="clearButton" class="text-button danger" type="button">Limpiar</button>
             </div>
           </article>
-
           <article class="panel output-panel">
             <div class="panel-heading">
               <div><span class="step">2</span><h2>Resumen clínico</h2></div>
               <div class="output-controls" aria-label="Opciones del resumen">
-                <label class="group-control" for="groupResults">
-                  <span>Agrupar</span><input id="groupResults" type="checkbox" role="switch" checked /><span class="switch-track" aria-hidden="true"></span>
-                </label>
-                <label class="group-control" for="examColons">
-                  <span>Dos puntos</span><input id="examColons" type="checkbox" role="switch" checked /><span class="switch-track" aria-hidden="true"></span>
-                </label>
+                <label class="group-control" for="groupResults"><span>Agrupar</span><input id="groupResults" type="checkbox" role="switch" checked /><span class="switch-track" aria-hidden="true"></span></label>
+                <label class="group-control" for="examColons"><span>Dos puntos</span><input id="examColons" type="checkbox" role="switch" checked /><span class="switch-track" aria-hidden="true"></span></label>
               </div>
             </div>
             <div id="emptyState" class="empty-state"><span aria-hidden="true">⌁</span><p>El resumen aparecerá aquí.</p></div>
@@ -62,7 +56,7 @@
             <div class="output-footer multi-action-footer">
               <span id="resultCount">Sin resultados</span>
               <div class="button-row">
-                <button id="addToConsultButton" class="secondary-button" type="button" disabled>Agregar a consulta</button>
+                <button id="addToEvolutionButton" class="secondary-button" type="button" disabled>Agregar a evolución</button>
                 <button id="copyButton" class="primary-button" type="button" disabled>Copiar resumen</button>
               </div>
             </div>
@@ -70,86 +64,112 @@
         </section>
       </section>
 
-      <section class="app-view" data-view="consultation" hidden>
-        <section class="intro">
-          <p class="eyebrow">Cierre asistido de consulta</p>
-          <h1>Deja el plan documentado y los pendientes visibles.</h1>
-          <p>Redacta o pega el contenido de la consulta. El sistema prepara un borrador y reconoce únicamente acciones explícitas; todo permanece editable antes de copiarlo.</p>
-        </section>
-
-        <section class="workspace consultation-workspace" aria-label="Cierre de consulta">
-          <article class="panel consultation-input-panel">
-            <div class="panel-heading">
-              <div><span class="step">1</span><h2>Registro de consulta</h2></div>
-              <button id="consultSampleButton" class="text-button" type="button">Usar ejemplo</button>
-            </div>
-            <div class="form-stack">
-              <label class="field compact-field" for="consultDate"><span>Fecha</span><input id="consultDate" type="date" /></label>
-              <label class="field" for="consultSummary"><span>Resumen de la consulta</span><textarea id="consultSummary" placeholder="Antecedentes relevantes y evolución…"></textarea></label>
-              <label class="field" for="consultLabs"><span>Exámenes</span><textarea id="consultLabs" placeholder="Puedes traer aquí el resumen desde Resultados…"></textarea></label>
-              <label class="field" for="consultPlan"><span>Plan indicado</span><textarea id="consultPlan" placeholder="Una acción por frase: solicitar…, derivar…, control en…"></textarea></label>
-            </div>
-            <div class="input-footer">
-              <span>Los datos se eliminan al recargar la página</span>
-              <button id="clearConsultButton" class="text-button danger" type="button">Limpiar</button>
-            </div>
-          </article>
-
-          <article class="panel consultation-output-panel">
-            <div class="panel-heading">
-              <div><span class="step">2</span><h2>Borrador verificable</h2></div>
-              <span class="draft-badge">No firmado</span>
-            </div>
-            <div id="consultEmptyState" class="empty-state"><span aria-hidden="true">✓</span><p>El borrador aparecerá a medida que escribas.</p></div>
-            <pre id="consultDraft" hidden aria-live="polite"></pre>
-            <div class="output-footer multi-action-footer">
-              <span id="consultTaskCount">Sin acciones reconocidas</span>
-              <div class="button-row">
-                <button id="sendToPendingButton" class="secondary-button" type="button" disabled>Crear pendientes</button>
-                <button id="copyConsultButton" class="primary-button" type="button" disabled>Copiar borrador</button>
-              </div>
-            </div>
-          </article>
-        </section>
-      </section>
-
-      <section class="app-view" data-view="pending" hidden>
-        <section class="intro pending-intro">
+      <section class="app-view" data-view="evolution" hidden>
+        <section class="intro wide-intro">
           <div>
-            <p class="eyebrow">Trazabilidad del plan</p>
-            <h1>Revisa responsables, plazos y estado.</h1>
-            <p>Esta bandeja corresponde solo a la sesión actual. No reemplaza la agenda, la ficha clínica ni los mecanismos institucionales de seguimiento.</p>
+            <p class="eyebrow">Compositor de evolución</p>
+            <h1>Escribe una vez y prepara cada campo de SSASUR.</h1>
+            <p>Conserva tu estructura habitual. Los datos permanecen solamente en esta pestaña.</p>
           </div>
-          <button id="addPendingButton" class="primary-button large-button" type="button">+ Agregar pendiente</button>
+          <button id="evolutionSampleButton" class="secondary-button large-button" type="button">Cargar ejemplo ficticio</button>
         </section>
 
-        <section class="pending-summary" aria-label="Resumen de pendientes">
-          <div class="metric-card"><strong id="totalPendingMetric">0</strong><span>Total</span></div>
-          <div class="metric-card"><strong id="openPendingMetric">0</strong><span>Abiertos</span></div>
-          <div class="metric-card"><strong id="completedPendingMetric">0</strong><span>Completados</span></div>
-          <label class="filter-control" for="pendingFilter"><span>Mostrar</span><select id="pendingFilter"><option value="all">Todos</option><option value="open">Abiertos</option><option value="completed">Completados</option></select></label>
+        <section class="composer-grid" aria-label="Datos de la evolución">
+          <article class="form-card">
+            <div class="form-card-heading"><span class="step">1</span><div><h2>Antecedentes</h2><p>Bloque estable de la evolución.</p></div></div>
+            <div class="field-grid two-columns">
+              <label class="field" for="encounterDate"><span>Fecha del control</span><input id="encounterDate" type="date" /></label>
+              <label class="field" for="am"><span>AM</span><input id="am" type="text" placeholder="Antecedentes médicos" /></label>
+              <label class="field" for="medications"><span>MED</span><textarea id="medications" placeholder="Medicamentos habituales"></textarea></label>
+              <label class="field" for="surgeries"><span>AQX</span><textarea id="surgeries" placeholder="Antecedentes quirúrgicos"></textarea></label>
+              <label class="field" for="obstetric"><span>AOBST</span><textarea id="obstetric" placeholder="Antecedentes obstétricos"></textarea></label>
+              <label class="field" for="habits"><span>HAB</span><textarea id="habits" placeholder="Hábitos"></textarea></label>
+            </div>
+            <label class="field" for="previousSummary"><span>Resumen cronológico previo</span><textarea id="previousSummary" class="tall-field" placeholder="Controles anteriores o resumen de la historia relevante…"></textarea></label>
+          </article>
+
+          <article class="form-card">
+            <div class="form-card-heading"><span class="step">2</span><div><h2>Control actual</h2><p>Contenido nuevo de esta atención.</p></div></div>
+            <label class="field" for="currentEvolution"><span>Evolución actual</span><textarea id="currentEvolution" class="tall-field" placeholder="Eventos desde el último control, evolución y antecedentes nuevos…"></textarea></label>
+            <label class="field" for="evolutionLabs"><span>Exámenes</span><textarea id="evolutionLabs" placeholder="Puedes agregarlos desde Resultados…"></textarea></label>
+            <label class="field" for="physicalExam"><span>Examen físico</span><textarea id="physicalExam" placeholder="Solo si corresponde…"></textarea></label>
+            <label class="field" for="diagnosticHypothesis"><span>Hipótesis diagnóstica</span><textarea id="diagnosticHypothesis" placeholder="Texto que irá en Diagnóstico y, por defecto, en OA/IC…"></textarea></label>
+            <label class="field" for="treatmentIndications"><span>Tratamiento e indicaciones</span><textarea id="treatmentIndications" class="tall-field" placeholder="Conducta indicada por el médico…"></textarea></label>
+            <label class="inline-check" for="includeTreatmentInAnamnesis"><input id="includeTreatmentInAnamnesis" type="checkbox" checked /><span>Incluir también la conducta al final de Anamnesis</span></label>
+          </article>
+
+          <article class="form-card">
+            <div class="form-card-heading"><span class="step">3</span><div><h2>Órdenes y receta</h2><p>Una prestación o prescripción por línea.</p></div></div>
+            <label class="field" for="orders"><span>Exámenes que se solicitarán</span><textarea id="orders" class="tall-field" placeholder="TSH&#10;T4 LIBRE&#10;HEMOGRAMA"></textarea></label>
+            <label class="field" for="prescriptions"><span>Medicamentos que se emitirán</span><textarea id="prescriptions" placeholder="Nombre, dosis, frecuencia, duración y cantidad…"></textarea></label>
+            <details class="optional-fields">
+              <summary>Campos adicionales de Plan y OA/IC</summary>
+              <label class="field" for="observations"><span>Observaciones</span><textarea id="observations"></textarea></label>
+              <label class="field" for="complementaryExams"><span>Exámenes complementarios</span><textarea id="complementaryExams"></textarea></label>
+              <label class="field" for="orderHypothesis"><span>Hipótesis específica para OA/IC</span><textarea id="orderHypothesis" placeholder="Si queda vacío, se reutiliza la hipótesis diagnóstica."></textarea></label>
+            </details>
+          </article>
+
+          <article class="form-card">
+            <div class="form-card-heading"><span class="step">4</span><div><h2>Próximo control</h2><p>Replica los parámetros de Acción a realizar.</p></div></div>
+            <button id="suggestFollowUpButton" class="secondary-button" type="button">Completar desde indicaciones</button>
+            <div class="field-grid two-columns">
+              <label class="field" for="followUpAction"><span>Acción</span><select id="followUpAction"><option value="">Seleccione…</option><option>CONTROL MISMA ESPECIALIDAD</option><option>ALTA MÉDICA</option><option>CONTRARREFERENCIA</option><option>OTRA</option></select></label>
+              <label class="field" for="followUpInterval"><span>Intervalo</span><select id="followUpInterval"><option value="">Seleccione…</option><option>1 MES</option><option>2 MESES</option><option>3 MESES</option><option>4 MESES</option><option>6 MESES</option><option>12 MESES</option><option>SEGÚN DISPONIBILIDAD</option></select></label>
+              <label class="field" for="followUpModality"><span>Modalidad</span><select id="followUpModality"><option value="">Seleccione…</option><option>PRESENCIAL EN ESTABLECIMIENTO</option><option>TELEMEDICINA</option><option>TELEFÓNICA</option><option>OTRA</option></select></label>
+              <label class="field" for="followUpPriority"><span>Prioridad</span><select id="followUpPriority"><option value="">Seleccione…</option><option>P1</option><option>P2</option><option>P3</option></select></label>
+            </div>
+            <div class="check-row">
+              <label class="inline-check" for="requiresObservation"><input id="requiresObservation" type="checkbox" /><span>Requiere gestión/observación</span></label>
+              <label class="inline-check" for="counterRefer"><input id="counterRefer" type="checkbox" /><span>Contrarreferir</span></label>
+            </div>
+          </article>
         </section>
 
-        <section class="pending-board" aria-label="Listado de pendientes">
-          <div id="pendingEmptyState" class="empty-state pending-empty"><span aria-hidden="true">☷</span><p>Todavía no hay pendientes en esta sesión.</p></div>
-          <div id="pendingList" class="pending-list"></div>
-        </section>
-        <div class="pending-actions">
-          <span>Revisa cada elemento antes de incorporarlo a un registro institucional.</span>
-          <div class="button-row">
-            <button id="clearPendingButton" class="text-button danger" type="button">Limpiar todos</button>
-            <button id="copyPendingButton" class="primary-button" type="button" disabled>Copiar pendientes</button>
-          </div>
+        <div class="page-actions">
+          <button id="clearEvolutionButton" class="text-button danger" type="button">Limpiar evolución</button>
+          <button id="openOutputsButton" class="primary-button" type="button">Revisar salidas SSASUR</button>
         </div>
       </section>
 
+      <section class="app-view" data-view="outputs" hidden>
+        <section class="intro wide-intro">
+          <div>
+            <p class="eyebrow">Salidas por pantalla</p>
+            <h1>Copia solamente el bloque que necesita cada pestaña.</h1>
+            <p>Las salidas se actualizan automáticamente con los datos de Evolución.</p>
+          </div>
+          <button class="secondary-button large-button" type="button" data-go-to="evolution">Editar evolución</button>
+        </section>
+        <section id="outputsGrid" class="outputs-grid" aria-label="Bloques para SSASUR"></section>
+        <div class="page-actions right-aligned"><button class="primary-button" type="button" data-go-to="closure">Revisar cierre</button></div>
+      </section>
+
+      <section class="app-view" data-view="closure" hidden>
+        <section class="intro">
+          <p class="eyebrow">Cierre de atención</p>
+          <h1>Comprueba que la conducta quedó registrada en todos los módulos.</h1>
+          <p>Las alertas son de consistencia documental; no evalúan la decisión clínica.</p>
+        </section>
+        <section class="closure-layout">
+          <article class="closure-card">
+            <div class="form-card-heading"><span class="step">!</span><div><h2>Revisión de consistencia</h2><p id="warningSummary">Sin alertas.</p></div></div>
+            <div id="warningsList" class="warnings-list"></div>
+          </article>
+          <article class="closure-card">
+            <div class="form-card-heading"><span class="step">✓</span><div><h2>Checklist manual</h2><p id="closureProgress">0 de 0 completados</p></div></div>
+            <div id="closureChecklist" class="closure-checklist"></div>
+            <button id="resetClosureButton" class="text-button" type="button">Desmarcar todos</button>
+          </article>
+        </section>
+      </section>
+
       <section class="notice" aria-label="Privacidad">
-        <strong>Privacidad:</strong> el contenido se procesa dentro de este navegador y no se almacena. Verifica siempre los borradores y pendientes antes de incorporarlos a la ficha clínica.
+        <strong>Privacidad:</strong> el contenido se procesa localmente, no se almacena y desaparece al recargar. Verifica cada bloque antes de incorporarlo al registro clínico.
       </section>
     </main>
-
-    <footer>ExSSASUR es una herramienta de apoyo documental y no reemplaza la validación profesional.</footer>
+    <footer>ExSSASUR apoya el trabajo documental y no reemplaza la validación profesional ni los sistemas institucionales.</footer>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="src/app.js?v=2.1.0"></script>
+    <script type="module" src="src/app.js?v=2.2.0"></script>
   </body>
 </html>
