@@ -769,6 +769,167 @@ footer {
   }
 }
 
+/* Importador de evoluciones 2.2.1 */
+.evolution-importer {
+  margin-bottom: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(14, 165, 233, 0.32);
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 58%);
+  box-shadow: var(--shadow);
+}
+
+.importer-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.importer-heading h2 {
+  margin: 2px 0 5px;
+  font-size: 1.05rem;
+}
+
+.importer-heading p:last-child {
+  max-width: 780px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.evolution-import-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.import-source,
+.import-preview-panel {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  padding: 18px 20px;
+}
+
+.import-source {
+  border-right: 1px solid var(--line);
+}
+
+.import-source .field textarea {
+  min-height: 230px;
+  resize: vertical;
+  border: 1px solid #bcccdc;
+  border-radius: 10px;
+  padding: 12px;
+  outline: 0;
+  background: white;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.import-source .field textarea:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14);
+}
+
+.import-source .input-footer {
+  padding: 12px 0 0;
+}
+
+.import-preview-panel {
+  gap: 12px;
+}
+
+.import-preview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.import-preview-heading strong {
+  color: var(--blue);
+  font-size: 0.85rem;
+}
+
+.import-preview-heading span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.import-preview-panel pre {
+  min-height: 150px;
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 13px;
+  background: #fbfdfe;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.compact-empty {
+  min-height: 150px;
+  border: 1px dashed var(--line);
+  border-radius: 11px;
+}
+
+.import-notice {
+  margin: 0;
+  border-radius: 9px;
+  padding: 10px 12px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.import-preview-panel .primary-button {
+  justify-self: end;
+}
+
+@media (max-width: 820px) {
+  .evolution-import-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .import-source {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .import-source .field textarea {
+    min-height: 230px;
+  }
+
+  .import-preview-panel pre,
+  .compact-empty {
+    min-height: 150px;
+  }
+}
+
+@media (max-width: 620px) {
+  .importer-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .import-preview-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .import-preview-panel .primary-button {
+    width: 100%;
+  }
+}
+
 /* Flujo SSASUR 2.2 */
 .page-shell {
   width: min(1280px, 94vw);
@@ -1115,5 +1276,16 @@ footer {
     flex-direction: column;
     align-items: flex-end;
     gap: 7px;
+  }
+}
+
+@media (max-width: 820px) {
+  .import-source .field textarea {
+    min-height: 230px;
+  }
+
+  .import-preview-panel pre,
+  .compact-empty {
+    min-height: 150px;
   }
 }
